@@ -1,0 +1,27 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'ro.andob.jpegturbo.sample'
+    compileSdkVersion 33
+    defaultConfig {
+        applicationId 'ro.andob.jpegturbo.sample'
+        minSdkVersion 28
+        targetSdkVersion 33
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'com.gemalto.jp2:jp2-android:1.0.3'
+    implementation project(":bindings")
+}

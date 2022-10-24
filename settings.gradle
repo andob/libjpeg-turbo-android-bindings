@@ -1,0 +1,2 @@
+include ':sample', ':bindings'
+rootProject.name = "jpeg-turbo-android-bindings"
