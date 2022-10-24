@@ -40,7 +40,9 @@
  * we use floating point arithmetic.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdct.h"               /* Private declarations for DCT subsystem */

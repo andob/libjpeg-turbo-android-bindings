@@ -50,7 +50,9 @@
  * Currently, smoothing is only supported for 2h2v sampling factors.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jsimd.h"

@@ -13,7 +13,9 @@
  * just knows how to get the profile data from a JPEG file while reading it.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jerror.h"

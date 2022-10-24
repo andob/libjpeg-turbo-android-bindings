@@ -13,7 +13,9 @@
  * This file contains stubs for when there is no SIMD support available.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jsimd.h"

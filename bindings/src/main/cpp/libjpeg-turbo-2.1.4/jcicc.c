@@ -13,7 +13,9 @@
  * just knows how to embed the profile data in a JPEG file while writing it.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jerror.h"

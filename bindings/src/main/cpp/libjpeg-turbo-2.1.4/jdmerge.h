@@ -1,3 +1,5 @@
+#ifndef _JDMERGE_H_
+#define _JDMERGE_H_
 /*
  * jdmerge.h
  *
@@ -9,7 +11,9 @@
  * file.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jpeglib.h"
 
 #ifdef UPSAMPLE_MERGING_SUPPORTED
@@ -45,3 +49,4 @@ typedef struct {
 typedef my_merged_upsampler *my_merged_upsample_ptr;
 
 #endif /* UPSAMPLE_MERGING_SUPPORTED */
+#endif

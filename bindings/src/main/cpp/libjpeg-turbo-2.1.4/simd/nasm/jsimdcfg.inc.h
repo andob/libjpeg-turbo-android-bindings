@@ -10,7 +10,9 @@
 ; Automatically generated include file from jsimdcfg.inc.h
 ;
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 
 #include "../jpeglib.h"
 #include "../jconfig.h"

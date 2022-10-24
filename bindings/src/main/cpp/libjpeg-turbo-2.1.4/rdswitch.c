@@ -357,6 +357,16 @@ set_quality_ratings(j_compress_ptr cinfo, char *arg, boolean force_baseline)
   return TRUE;
 }
 
+GLOBAL(boolean)
+set_quality_ratings_int(j_compress_ptr cinfo, int quality, boolean force_baseline)
+{
+  for (int tblno = 0; tblno < NUM_QUANT_TBLS; tblno++) {
+    cinfo->q_scale_factor[tblno] = jpeg_quality_scaling(MAX(0, MIN(100, quality)));
+  }
+  jpeg_default_qtables(cinfo, force_baseline);
+  return TRUE;
+}
+
 
 GLOBAL(boolean)
 set_quant_slots(j_compress_ptr cinfo, char *arg)

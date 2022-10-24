@@ -37,7 +37,9 @@
  * general code in jdsample.c and jdcolor.c.)
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdmerge.h"

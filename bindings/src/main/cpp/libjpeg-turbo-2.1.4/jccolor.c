@@ -13,7 +13,9 @@
  * This file contains input colorspace conversion routines.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jsimd.h"

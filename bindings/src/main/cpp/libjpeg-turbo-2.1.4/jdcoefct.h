@@ -10,7 +10,9 @@
  * file.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jpeglib.h"
 
 

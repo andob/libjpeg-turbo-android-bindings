@@ -27,7 +27,9 @@
  * memory then you shouldn't care about a little bit of unused code...)
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #define AM_MEMORY_MANAGER       /* we define jvirt_Xarray_control structs */
 #include "jinclude.h"
 #include "jpeglib.h"

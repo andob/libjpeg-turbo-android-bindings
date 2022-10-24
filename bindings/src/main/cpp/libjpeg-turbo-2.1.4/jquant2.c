@@ -20,7 +20,9 @@
  * fundamental assumptions even hold with an irregularly spaced color map.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 

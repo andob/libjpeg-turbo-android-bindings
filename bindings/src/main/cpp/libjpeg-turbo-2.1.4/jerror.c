@@ -74,7 +74,8 @@ error_exit(j_common_ptr cinfo)
   /* Let the memory manager delete any temp files before we die */
   jpeg_destroy(cinfo);
 
-  exit(EXIT_FAILURE);
+  //NO: exit(EXIT_FAILURE);
+  longjmp(cinfo->err->jump_buffer, EXIT_FAILURE);
 }
 
 
@@ -106,8 +107,13 @@ output_message(j_common_ptr cinfo)
   MessageBox(GetActiveWindow(), buffer, "JPEG Library Error",
              MB_OK | MB_ICONERROR);
 #else
-  /* Send it to stderr, adding a newline */
-  fprintf(stderr, "%s\n", buffer);
+  if (cinfo->err->error_file != NULL) {
+      /* Send it to file, adding a newline */
+      fprintf(cinfo->err->error_file, "%s\n", buffer);
+  } else {
+      /* Send it to stderr, adding a newline */
+      fprintf(stderr, "%s\n", buffer);
+  }
 #endif
 }
 
@@ -229,6 +235,7 @@ reset_error_mgr(j_common_ptr cinfo)
 GLOBAL(struct jpeg_error_mgr *)
 jpeg_std_error(struct jpeg_error_mgr *err)
 {
+  err->error_file = NULL;
   err->error_exit = error_exit;
   err->emit_message = emit_message;
   err->output_message = output_message;

@@ -14,7 +14,9 @@
  * The routines in jcapimin.c will also be needed by a transcoder.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jpegcomp.h"

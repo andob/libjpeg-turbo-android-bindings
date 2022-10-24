@@ -1,11 +1,7 @@
 package ro.andob.jpegturbo;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.nio.file.Files;
 import java.util.Objects;
 
@@ -26,42 +22,40 @@ public class JPEGTurbo
     private static ExceptionLogger warningLogger = Throwable::printStackTrace;
     public static void setWarningLogger(ExceptionLogger logger) { warningLogger = Objects.requireNonNull(logger); }
 
-//    private static native int jpegtranNative(String[] args);
-
-    public static native int cjpeg(Bitmap bitmap, int quality, String destinationFilePath, boolean optimize, boolean progressive);
+    private static native int jpegtran(String[] args, int quality);
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void jpegtran(Context context, String... args)
+    public static void jpegtran2(Context context, int quality, String... args)
     {
-//        File errorFile = context.getFileStreamPath("jpeg_turbo_last_error.txt");
-//        if (!errorFile.exists())
-//            errorFile.delete();
-//
-//        String[] argsForC = new String[args.length+1];
-//        argsForC[0] = errorFile.getAbsolutePath();
-//        System.arraycopy(args, 0, argsForC, 1, args.length);
-//
-//        int resultCode = jpegtranNative(argsForC);
-//        if (resultCode != EXIT_SUCCESS)
-//        {
-//            String errorMessage = "";
-//            if (errorFile.exists())
-//            {
-//                try { errorMessage = new String(Files.readAllBytes(errorFile.toPath())); }
-//                catch (Throwable ignored) {}
-//            }
-//
-//            if (resultCode == EXIT_FAILURE)
-//            {
-//                RuntimeException ex = new RuntimeException(errorMessage);
-//                errorLogger.log(ex);
-//                throw ex;
-//            }
-//            else if (resultCode == EXIT_WARNING)
-//            {
-//                RuntimeException ex = new RuntimeException(errorMessage);
-//                warningLogger.log(ex);
-//            }
-//        }
+        File errorFile = context.getFileStreamPath("jpeg_turbo_last_error.txt");
+        if (!errorFile.exists())
+            errorFile.delete();
+
+        String[] argsForC = new String[args.length+1];
+        argsForC[0] = errorFile.getAbsolutePath();
+        System.arraycopy(args, 0, argsForC, 1, args.length);
+
+        int resultCode = jpegtran(argsForC, quality);
+        if (resultCode != EXIT_SUCCESS)
+        {
+            String errorMessage = "";
+            if (errorFile.exists())
+            {
+                try { errorMessage = new String(Files.readAllBytes(errorFile.toPath())); }
+                catch (Throwable ignored) {}
+            }
+
+            if (resultCode == EXIT_FAILURE)
+            {
+                RuntimeException ex = new RuntimeException(errorMessage);
+                errorLogger.log(ex);
+                throw ex;
+            }
+            else if (resultCode == EXIT_WARNING)
+            {
+                RuntimeException ex = new RuntimeException(errorMessage);
+                warningLogger.log(ex);
+            }
+        }
     }
 }

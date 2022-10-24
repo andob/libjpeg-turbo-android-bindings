@@ -1,3 +1,5 @@
+#ifndef _JMORECFG_H_
+#define _JMORECFG_H_
 /*
  * jmorecfg.h
  *
@@ -380,3 +382,4 @@ static const int rgb_pixelsize[JPEG_NUMCS] = {
 #endif
 
 #endif /* JPEG_INTERNAL_OPTIONS */
+#endif

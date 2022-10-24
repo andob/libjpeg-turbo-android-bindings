@@ -15,7 +15,9 @@
  * whole compression library into a transcoder.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 

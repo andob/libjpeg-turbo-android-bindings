@@ -15,7 +15,9 @@
  * reading is done in jdmarker.c, jdhuff.c, and jdphuff.c.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jpegcomp.h"

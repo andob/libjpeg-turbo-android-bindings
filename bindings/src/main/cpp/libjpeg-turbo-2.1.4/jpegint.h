@@ -1,3 +1,5 @@
+#ifndef _JPEGINT_H_
+#define _JPEGINT_H_
 /*
  * jpegint.h
  *
@@ -373,3 +375,4 @@ extern const int jpeg_natural_order[]; /* zigzag coef order to natural order */
 
 /* Arithmetic coding probability estimation tables in jaricom.c */
 extern const JLONG jpeg_aritab[];
+#endif

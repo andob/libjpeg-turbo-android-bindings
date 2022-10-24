@@ -1,0 +1,6 @@
+.gradle/
+.idea/
+bindings/.cxx/
+bindings/build/
+sample/build/
+local.properties

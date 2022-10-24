@@ -32,7 +32,9 @@
 #endif
 
 #ifdef CJPEG_FUZZER
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #endif
 #include "cdjpeg.h"             /* Common decls for cjpeg/djpeg applications */
 #include "jversion.h"           /* for version message */

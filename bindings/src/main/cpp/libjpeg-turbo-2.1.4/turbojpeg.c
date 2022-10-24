@@ -32,7 +32,9 @@
 
 #include <ctype.h>
 #include <jinclude.h>
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include <jpeglib.h>
 #include <jerror.h>
 #include <setjmp.h>

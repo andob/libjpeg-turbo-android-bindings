@@ -18,7 +18,9 @@
  * without linking in the whole library.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jpegcomp.h"

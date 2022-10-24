@@ -29,7 +29,7 @@
 #include "jconfig.h"            /* widely used configuration options */
 #endif
 #include "jmorecfg.h"           /* seldom changed options */
-
+#include <setjmp.h>
 
 #ifdef __cplusplus
 #ifndef DONT_USE_EXTERN_C
@@ -718,6 +718,9 @@ struct jpeg_decompress_struct {
 /* Error handler object */
 
 struct jpeg_error_mgr {
+  FILE* error_file;
+  jmp_buf jump_buffer;
+
   /* Error exit handler: does not return to caller */
   void (*error_exit) (j_common_ptr cinfo);
   /* Conditionally emit a trace or warning message */

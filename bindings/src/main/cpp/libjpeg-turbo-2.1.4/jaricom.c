@@ -16,7 +16,9 @@
  * Recommendation ITU-T T.82 (1993) | ISO/IEC 11544:1993.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 

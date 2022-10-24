@@ -20,7 +20,9 @@
  * Recommendation ITU-T T.81 (1992) | ISO/IEC 10918-1:1994.
  */
 
+#ifndef JPEG_INTERNALS
 #define JPEG_INTERNALS
+#endif
 #include "jinclude.h"
 #include "jpeglib.h"
 #include "jdhuff.h"             /* Declarations shared with jdhuff.c */

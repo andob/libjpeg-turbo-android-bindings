@@ -5,7 +5,7 @@ android {
     compileSdkVersion 33
     defaultConfig {
         applicationId 'ro.andob.jpegturbo.sample'
-        minSdkVersion 28
+        minSdkVersion 26
         targetSdkVersion 33
     }
     buildTypes {
@@ -22,6 +22,5 @@ android {
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'com.gemalto.jp2:jp2-android:1.0.3'
     implementation project(":bindings")
 }

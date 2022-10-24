@@ -5,29 +5,21 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.widget.Toast;
-
 import androidx.core.content.FileProvider;
-
-import com.gemalto.jp2.JP2Encoder;
-
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.StandardOpenOption;
+import java.io.FileOutputStream;
 import java.util.function.Supplier;
-
 import ro.andob.jpegturbo.JPEGTurbo;
 
 public class MainActivity extends Activity
 {
-    private final Supplier<File> inputFile = () -> getFileStreamPath("input.jpg");
-    private final Supplier<File> inputRawFile = () -> getFileStreamPath("inputRaw.dat");
-    private final Supplier<File> outputFile = () -> getFileStreamPath("output.jpg");
+    private final Supplier<File> inputFile = () -> new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "input.jpg");
+    private final Supplier<File> outputFile = () -> new File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "output.jpg");
 
     @Override
     @SuppressWarnings("Convert2MethodRef")
@@ -54,36 +46,31 @@ public class MainActivity extends Activity
         {
             new Thread(() ->
             {
-                try
-                {
-//                    JPEGTurbo.jpegtran(this,
-//                        "-optimize", "-progressive",
-//                        "-outfile", outputFile.get().getAbsolutePath(),
-//                        inputFile.get().getAbsolutePath()
-//                    );
+                int quality = 85;
 
-//                    Bitmap bitmap = BitmapFactory.decodeFile(inputFile.get().getAbsolutePath());
-//                    long startTime = System.currentTimeMillis();
-//                    int statusCode = JPEGTurbo.cjpeg(bitmap, 85, outputFile.get().getAbsolutePath(), true, true);
-//                    long stopTime = System.currentTimeMillis();
-//                    long deltaTime = stopTime-startTime;
-//                    runOnUiThread(() -> Toast.makeText(this, "SC = "+statusCode+", Time = "+deltaTime, Toast.LENGTH_LONG).show());
-//                    bitmap.recycle();
+                long startTime1 = System.currentTimeMillis();
+                JPEGTurbo.jpegtran2(this, 85,
+                    "-progressive",
+                    "-outfile", outputFile.get().getAbsolutePath(),
+                    inputFile.get().getAbsolutePath()
+                );
+                long stopTime1 = System.currentTimeMillis();
+                long deltaTime1 = stopTime1 - startTime1;
 
-                    Bitmap bitmap = BitmapFactory.decodeFile(inputFile.get().getAbsolutePath());
-                    long startTime = System.currentTimeMillis();
-                    byte[] jp2data = new JP2Encoder(bitmap)
-                            .setVisualQuality(85)
-                            .encode();
-                    long stopTime = System.currentTimeMillis();
-                    long deltaTime = stopTime-startTime;
-                    runOnUiThread(() -> Toast.makeText(this, "Time = "+deltaTime, Toast.LENGTH_LONG).show());
-                    bitmap.recycle();
-                }
-                catch (Throwable ex)
+                long startTime2 = System.currentTimeMillis();
+                Bitmap bitmap = BitmapFactory.decodeFile(inputFile.get().getAbsolutePath());
+                try (FileOutputStream outputStream = new FileOutputStream(outputFile.get())) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+                } catch (Exception ignored) {}
+                bitmap.recycle();
+                long stopTime2 = System.currentTimeMillis();
+                long deltaTime2 = stopTime2 - startTime2;
+
+                runOnUiThread(() ->
                 {
-                    runOnUiThread(() -> Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show());
-                }
+                    String message = "JPEGTRAN: "+deltaTime1+"ms"+", System: "+deltaTime2+"ms";
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+                });
             }).start();
         }
     }
