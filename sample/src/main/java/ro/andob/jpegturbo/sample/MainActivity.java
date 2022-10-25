@@ -58,11 +58,10 @@ public class MainActivity extends Activity
                 long deltaTime1 = stopTime1 - startTime1;
 
                 long startTime2 = System.currentTimeMillis();
-                Bitmap bitmap = BitmapFactory.decodeFile(inputFile.get().getAbsolutePath());
-                try (FileOutputStream outputStream = new FileOutputStream(outputFile.get())) {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
-                } catch (Exception ignored) {}
-                bitmap.recycle();
+                JPEGTurbo.jpegtran2(this, 85,
+                    "-outfile", outputFile.get().getAbsolutePath(),
+                    inputFile.get().getAbsolutePath()
+                );
                 long stopTime2 = System.currentTimeMillis();
                 long deltaTime2 = stopTime2 - startTime2;
 
