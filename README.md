@@ -17,11 +17,9 @@ repositories {
 ```
 android {
     defaultConfig {
-        defaultConfig {
-            externalNativeBuild {
-                cmake {
-                    arguments "-DANDROID_ARM_NEON=ON"
-                }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_ARM_NEON=ON"
             }
         }
     }
