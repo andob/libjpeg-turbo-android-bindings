@@ -12,7 +12,6 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import androidx.core.content.FileProvider;
 import java.io.File;
 import ro.andob.jpegturbo.JPEGTranArgs;
