@@ -39,7 +39,7 @@ Basic usage:
 ```java
 File inputFile = ...;
 File outputFile = ...; //outputFile must be different than inputFile
-JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
+JPEGTurbo.jpegtran(JPEGTranArgs.with(context)
     .inputFile(inputFile)
     .outputFile(outputFile));
 ```
@@ -47,7 +47,7 @@ JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
 Usage with optional features:
 
 ```java
-JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
+JPEGTurbo.jpegtran(JPEGTranArgs.with(context)
     .inputFile(inputFile)
     .outputFile(outputFile)
     .quality(85) //image quality, from 0 to 100
@@ -61,7 +61,7 @@ JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
 One can use optional featurs in any combination, for instance:
 
 ```java
-JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
+JPEGTurbo.jpegtran(JPEGTranArgs.with(context)
     .inputFile(inputFile)
     .outputFile(outputFile)
     .quality(90)
@@ -69,7 +69,7 @@ JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
 ```
 
 ```java
-JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
+JPEGTurbo.jpegtran(JPEGTranArgs.with(context)
     .inputFile(inputFile)
     .outputFile(outputFile)
     .quality(100)
@@ -85,7 +85,7 @@ Note that debug builds are much slower and do not benefit from SIMD optimisation
 ### Rationale
 
 1. While standard Android SDK Bitmap class is fine, jpeg-turbo is faster, because it uses SIMD (ARM NEON) instructions.
-2. Bitmap class is not able to compress into a progressive JPEG, only standard JPEG. This library can encode into standard JPEGs, as well as progressive JPEGs. A JPEG file is a kind of image which can be rendered while it gets downloaded.  On Android ecosystem, the only image loader that can display JPEGs progressively is Facebook's [Fresco](https://github.com/facebook/fresco). All other libs, Glide, Coil, Picasso will download the JPEG file and then will render it. On slow internet connections, loading progressive JPEGs with Fresco will make seem that they are loading faster (they are displayed faster, as they are downloaded - see [this demo](https://frescolib.org/docs/progressive-jpegs.html)).
+2. Bitmap class is not able to compress into a progressive JPEG, only standard JPEG. This library can encode into standard JPEGs, as well as progressive JPEGs. A JPEG file is a kind of image which can be rendered while it gets downloaded.  On Android ecosystem, the only image loader that can display JPEGs progressively is Facebook's [Fresco](https://github.com/facebook/fresco). All other libs, Glide, Coil, Picasso will download the JPEG file and then will render it. On slow internet connections (or when loading lots of images), loading progressive JPEGs with Fresco will make seem that they are loading faster (they are displayed faster, as they are downloaded - see [this demo](https://frescolib.org/docs/progressive-jpegs.html)).
 3. Edge computing / client side processing. Instead of transforming images on the server, after they are uploaded to the server, one can transform the files on device, before uploading them. My plan is to use this library to on-device transform images from phone's camera into progressive JPEGs, and then upload them to the server. Later on, when images will be downloaded from the server, Fresco will be used to render them progressively. Also most browsers render progressive JPEGs as they are downloaded.
 
 #### How to upgrade libjpeg-turbo version?
