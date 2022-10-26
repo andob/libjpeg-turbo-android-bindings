@@ -1,60 +1,64 @@
 package ro.andob.jpegturbo;
 
-import android.content.Context;
 import java.io.File;
 import java.nio.file.Files;
-import java.util.Objects;
+import java.util.List;
 
 public class JPEGTurbo
 {
-    static { System.loadLibrary("jpeg_turbo"); }
-
     //from cdjpeg.h
     private static final int EXIT_FAILURE = 1;
     private static final int EXIT_SUCCESS = 0;
     private static final int EXIT_WARNING = 2;
 
-    public interface ExceptionLogger { void log(Throwable ex); }
+    private static final String ERROR_FILE_NAME = "jpeg_turbo_error.txt";
 
-    private static ExceptionLogger errorLogger = Throwable::printStackTrace;
-    public static void setErrorLogger(ExceptionLogger logger) { errorLogger = Objects.requireNonNull(logger); }
+    static { System.loadLibrary("jpeg_turbo"); }
 
-    private static ExceptionLogger warningLogger = Throwable::printStackTrace;
-    public static void setWarningLogger(ExceptionLogger logger) { warningLogger = Objects.requireNonNull(logger); }
-
-    private static native int jpegtran(String[] args, int quality);
+    public static native int jpegtran(int quality, String... args);
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void jpegtran2(Context context, int quality, String... args)
+    public static void jpegtran(JPEGTranArgs args)
     {
-        File errorFile = context.getFileStreamPath("jpeg_turbo_last_error.txt");
+        File errorFile = args.getContext().getFileStreamPath(ERROR_FILE_NAME);
         if (!errorFile.exists())
             errorFile.delete();
 
-        String[] argsForC = new String[args.length+1];
-        argsForC[0] = errorFile.getAbsolutePath();
-        System.arraycopy(args, 0, argsForC, 1, args.length);
+        List<String> rawCommandLineArgs = args.getCommandLineArgs();
+        String[] commandLineArgs = new String[rawCommandLineArgs.size()+1];
+        commandLineArgs[0] = errorFile.getAbsolutePath();
+        for (int i = 0; i < rawCommandLineArgs.size(); i++)
+            commandLineArgs[i+1] = rawCommandLineArgs.get(i);
 
-        int resultCode = jpegtran(argsForC, quality);
-        if (resultCode != EXIT_SUCCESS)
+        int resultCode = jpegtran(args.getQuality(), commandLineArgs);
+
+        if (resultCode != EXIT_SUCCESS || args.isVerbose())
         {
-            String errorMessage = "";
+            StringBuilder errorMessage = new StringBuilder("JPEGTurbo! ");
+            for (String rawCommandLineArg : rawCommandLineArgs)
+                errorMessage.append(rawCommandLineArg).append(" ");
+
+            errorMessage.append('\n').append("Result code: ");
+            if (resultCode == EXIT_SUCCESS) errorMessage.append("Success");
+            else if (resultCode == EXIT_WARNING) errorMessage.append("Warning");
+            else if (resultCode == EXIT_FAILURE) errorMessage.append("Failure");
+            else errorMessage.append(resultCode);
+
             if (errorFile.exists())
             {
-                try { errorMessage = new String(Files.readAllBytes(errorFile.toPath())); }
-                catch (Throwable ignored) {}
+                try { errorMessage.append('\n').append(new String(Files.readAllBytes(errorFile.toPath()))); }
+                catch (Throwable ex) { args.getWarningLogger().accept(ex); }
             }
 
             if (resultCode == EXIT_FAILURE)
             {
-                RuntimeException ex = new RuntimeException(errorMessage);
-                errorLogger.log(ex);
+                RuntimeException ex = new RuntimeException(errorMessage.toString());
+                args.getErrorLogger().accept(ex);
                 throw ex;
             }
-            else if (resultCode == EXIT_WARNING)
+            else if (resultCode == EXIT_WARNING || args.isVerbose())
             {
-                RuntimeException ex = new RuntimeException(errorMessage);
-                warningLogger.log(ex);
+                args.getWarningLogger().accept(new RuntimeException(errorMessage.toString()));
             }
         }
     }

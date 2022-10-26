@@ -234,6 +234,7 @@ preinclude_common_headers()
 configure_simd()
 
 file(GLOB_RECURSE SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/jpegtranmod.c
     ${LIBJPEG_TURBO_DIR}/cdjpeg.c
     ${LIBJPEG_TURBO_DIR}/jaricom.c
     ${LIBJPEG_TURBO_DIR}/jcarith.c
@@ -283,7 +284,6 @@ file(GLOB_RECURSE SOURCES
     ${LIBJPEG_TURBO_DIR}/jidctred.c
     ${LIBJPEG_TURBO_DIR}/jmemmgr.c
     ${LIBJPEG_TURBO_DIR}/jmemnobs.c
-    ${LIBJPEG_TURBO_DIR}/jpegtran.c
     ${LIBJPEG_TURBO_DIR}/jquant1.c
     ${LIBJPEG_TURBO_DIR}/jquant2.c
     ${LIBJPEG_TURBO_DIR}/jutils.c

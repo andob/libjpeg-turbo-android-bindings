@@ -14,6 +14,8 @@
  * provides some lossless and sort-of-lossless transformations of JPEG data.
  */
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
@@ -22,6 +24,9 @@
 #include "transupp.h"           /* Support routines for jpegtran */
 #include "jversion.h"           /* for version message */
 #include "jconfigint.h"
+#include <jni.h>
+#include <unistd.h>
+#include <setjmp.h>
 
 
 /*
@@ -45,66 +50,65 @@ static jpeg_transform_info transformoption; /* image transformation options */
 
 
 LOCAL(void)
-usage(void)
+usage(FILE* errorFile)
 /* complain about bad command line */
 {
-  fprintf(stderr, "usage: %s [switches] ", progname);
+  fprintf(errorFile, "usage: %s [switches] ", progname);
 #ifdef TWO_FILE_COMMANDLINE
-  fprintf(stderr, "inputfile outputfile\n");
+  fprintf(error_file, "inputfile outputfile\n");
 #else
-  fprintf(stderr, "[inputfile]\n");
+  fprintf(errorFile, "[inputfile]\n");
 #endif
 
-  fprintf(stderr, "Switches (names may be abbreviated):\n");
-  fprintf(stderr, "  -copy none     Copy no extra markers from source file\n");
-  fprintf(stderr, "  -copy comments Copy only comment markers (default)\n");
-  fprintf(stderr, "  -copy icc      Copy only ICC profile markers\n");
-  fprintf(stderr, "  -copy all      Copy all extra markers\n");
+  fprintf(errorFile, "Switches (names may be abbreviated):\n");
+  fprintf(errorFile, "  -copy none     Copy no extra markers from source file\n");
+  fprintf(errorFile, "  -copy comments Copy only comment markers (default)\n");
+  fprintf(errorFile, "  -copy icc      Copy only ICC profile markers\n");
+  fprintf(errorFile, "  -copy all      Copy all extra markers\n");
 #ifdef ENTROPY_OPT_SUPPORTED
-  fprintf(stderr, "  -optimize      Optimize Huffman table (smaller file, but slow compression)\n");
+  fprintf(errorFile, "  -optimize      Optimize Huffman table (smaller file, but slow compression)\n");
 #endif
 #ifdef C_PROGRESSIVE_SUPPORTED
-  fprintf(stderr, "  -progressive   Create progressive JPEG file\n");
+  fprintf(errorFile, "  -progressive   Create progressive JPEG file\n");
 #endif
-  fprintf(stderr, "Switches for modifying the image:\n");
+  fprintf(errorFile, "Switches for modifying the image:\n");
 #if TRANSFORMS_SUPPORTED
-  fprintf(stderr, "  -crop WxH+X+Y  Crop to a rectangular region\n");
-  fprintf(stderr, "  -drop +X+Y filename          Drop (insert) another image\n");
-  fprintf(stderr, "  -flip [horizontal|vertical]  Mirror image (left-right or top-bottom)\n");
-  fprintf(stderr, "  -grayscale     Reduce to grayscale (omit color data)\n");
-  fprintf(stderr, "  -perfect       Fail if there is non-transformable edge blocks\n");
-  fprintf(stderr, "  -rotate [90|180|270]         Rotate image (degrees clockwise)\n");
+  fprintf(errorFile, "  -crop WxH+X+Y  Crop to a rectangular region\n");
+  fprintf(errorFile, "  -drop +X+Y filename          Drop (insert) another image\n");
+  fprintf(errorFile, "  -flip [horizontal|vertical]  Mirror image (left-right or top-bottom)\n");
+  fprintf(errorFile, "  -grayscale     Reduce to grayscale (omit color data)\n");
+  fprintf(errorFile, "  -perfect       Fail if there is non-transformable edge blocks\n");
+  fprintf(errorFile, "  -rotate [90|180|270]         Rotate image (degrees clockwise)\n");
 #endif
 #if TRANSFORMS_SUPPORTED
-  fprintf(stderr, "  -transpose     Transpose image\n");
-  fprintf(stderr, "  -transverse    Transverse transpose image\n");
-  fprintf(stderr, "  -trim          Drop non-transformable edge blocks\n");
-  fprintf(stderr, "                 with -drop: Requantize drop file to match source file\n");
-  fprintf(stderr, "  -wipe WxH+X+Y  Wipe (gray out) a rectangular region\n");
+  fprintf(errorFile, "  -transpose     Transpose image\n");
+  fprintf(errorFile, "  -transverse    Transverse transpose image\n");
+  fprintf(errorFile, "  -trim          Drop non-transformable edge blocks\n");
+  fprintf(errorFile, "                 with -drop: Requantize drop file to match source file\n");
+  fprintf(errorFile, "  -wipe WxH+X+Y  Wipe (gray out) a rectangular region\n");
 #endif
-  fprintf(stderr, "Switches for advanced users:\n");
+  fprintf(errorFile, "Switches for advanced users:\n");
 #ifdef C_ARITH_CODING_SUPPORTED
-  fprintf(stderr, "  -arithmetic    Use arithmetic coding\n");
+  fprintf(errorFile, "  -arithmetic    Use arithmetic coding\n");
 #endif
-  fprintf(stderr, "  -icc FILE      Embed ICC profile contained in FILE\n");
-  fprintf(stderr, "  -restart N     Set restart interval in rows, or in blocks with B\n");
-  fprintf(stderr, "  -maxmemory N   Maximum memory to use (in kbytes)\n");
-  fprintf(stderr, "  -maxscans N    Maximum number of scans to allow in input file\n");
-  fprintf(stderr, "  -outfile name  Specify name for output file\n");
-  fprintf(stderr, "  -report        Report transformation progress\n");
-  fprintf(stderr, "  -strict        Treat all warnings as fatal\n");
-  fprintf(stderr, "  -verbose  or  -debug   Emit debug output\n");
-  fprintf(stderr, "  -version       Print version information and exit\n");
-  fprintf(stderr, "Switches for wizards:\n");
+  fprintf(errorFile, "  -icc FILE      Embed ICC profile contained in FILE\n");
+  fprintf(errorFile, "  -restart N     Set restart interval in rows, or in blocks with B\n");
+  fprintf(errorFile, "  -maxmemory N   Maximum memory to use (in kbytes)\n");
+  fprintf(errorFile, "  -maxscans N    Maximum number of scans to allow in input file\n");
+  fprintf(errorFile, "  -outfile name  Specify name for output file\n");
+  fprintf(errorFile, "  -report        Report transformation progress\n");
+  fprintf(errorFile, "  -strict        Treat all warnings as fatal\n");
+  fprintf(errorFile, "  -verbose  or  -debug   Emit debug output\n");
+  fprintf(errorFile, "  -version       Print version information and exit\n");
+  fprintf(errorFile, "Switches for wizards:\n");
 #ifdef C_MULTISCAN_FILES_SUPPORTED
-  fprintf(stderr, "  -scans FILE    Create multi-scan JPEG per script FILE\n");
+  fprintf(errorFile, "  -scans FILE    Create multi-scan JPEG per script FILE\n");
 #endif
-  exit(EXIT_FAILURE);
 }
 
 
-LOCAL(void)
-select_transform(JXFORM_CODE transform)
+LOCAL(int)
+select_transform(JXFORM_CODE transform, FILE* errorFile)
 /* Silly little routine to detect multiple transform options,
  * which we can't handle.
  */
@@ -114,21 +118,24 @@ select_transform(JXFORM_CODE transform)
       transformoption.transform == transform) {
     transformoption.transform = transform;
   } else {
-    fprintf(stderr, "%s: can only do one image transformation at a time\n",
+    fprintf(errorFile, "%s: can only do one image transformation at a time\n",
             progname);
-    usage();
+    usage(errorFile);
+    return EXIT_FAILURE;
   }
 #else
-  fprintf(stderr, "%s: sorry, image transformation was not compiled\n",
+  fprintf(error_file, "%s: sorry, image transformation was not compiled\n",
           progname);
-  exit(EXIT_FAILURE);
+  return EXIT_FAILURE;
 #endif
+  return EXIT_SUCCESS;
 }
 
 
 LOCAL(int)
 parse_switches(j_compress_ptr cinfo, int argc, char **argv,
-               int last_file_arg_seen, boolean for_real)
+               int last_file_arg_seen, boolean for_real,
+               int* parse_switches_result, FILE* errorFile)
 /* Parse optional switches.
  * Returns argv[] index of first file-name argument (== argc if none).
  * Any file names with indexes <= last_file_arg_seen are ignored;
@@ -178,15 +185,17 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 #ifdef C_ARITH_CODING_SUPPORTED
       cinfo->arith_code = TRUE;
 #else
-      fprintf(stderr, "%s: sorry, arithmetic coding not supported\n",
+      fprintf(error_file, "%s: sorry, arithmetic coding not supported\n",
               progname);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
 #endif
 
     } else if (keymatch(arg, "copy", 2)) {
       /* Select which extra markers to copy. */
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) { /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (keymatch(argv[argn], "none", 1)) {
         copyoption = JCOPYOPT_NONE;
       } else if (keymatch(argv[argn], "comments", 1)) {
@@ -195,19 +204,23 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
         copyoption = JCOPYOPT_ICC;
       } else if (keymatch(argv[argn], "all", 1)) {
         copyoption = JCOPYOPT_ALL;
-      } else
-        usage();
+      } else {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
 
     } else if (keymatch(arg, "crop", 2)) {
       /* Perform lossless cropping. */
 #if TRANSFORMS_SUPPORTED
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {      /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (transformoption.crop /* reject multiple crop/drop/wipe requests */ ||
           !jtransform_parse_crop_spec(&transformoption, argv[argn])) {
-        fprintf(stderr, "%s: bogus -crop argument '%s'\n",
+        fprintf(errorFile, "%s: bogus -crop argument '%s'\n",
                 progname, argv[argn]);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
       }
 #else
       select_transform(JXFORM_NONE);    /* force an error */
@@ -215,22 +228,30 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 
     } else if (keymatch(arg, "drop", 2)) {
 #if TRANSFORMS_SUPPORTED
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {      /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (transformoption.crop /* reject multiple crop/drop/wipe requests */ ||
           !jtransform_parse_crop_spec(&transformoption, argv[argn]) ||
           transformoption.crop_width_set != JCROP_UNSET ||
           transformoption.crop_height_set != JCROP_UNSET) {
-        fprintf(stderr, "%s: bogus -drop argument '%s'\n",
+        fprintf(errorFile, "%s: bogus -drop argument '%s'\n",
                 progname, argv[argn]);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
       }
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {      /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       dropfilename = argv[argn];
-      select_transform(JXFORM_DROP);
+      int select_transform_result = select_transform(JXFORM_DROP, errorFile);
+      if (select_transform_result != EXIT_SUCCESS)
+        return select_transform_result;
 #else
-      select_transform(JXFORM_NONE);    /* force an error */
+      int select_transform_result = select_transform(JXFORM_NONE); /* force an error */
+      if (select_transform_result != EXIT_SUCCESS)
+        return select_transform_result;
 #endif
 
     } else if (keymatch(arg, "debug", 1) || keymatch(arg, "verbose", 1)) {
@@ -239,30 +260,42 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
       static boolean printed_version = FALSE;
 
       if (!printed_version) {
-        fprintf(stderr, "%s version %s (build %s)\n",
+        fprintf(errorFile, "%s version %s (build %s)\n",
                 PACKAGE_NAME, VERSION, BUILD);
-        fprintf(stderr, "%s\n\n", JCOPYRIGHT);
-        fprintf(stderr, "Emulating The Independent JPEG Group's software, version %s\n\n",
+        fprintf(errorFile, "%s\n\n", JCOPYRIGHT);
+        fprintf(errorFile, "Emulating The Independent JPEG Group's software, version %s\n\n",
                 JVERSION);
         printed_version = TRUE;
       }
       cinfo->err->trace_level++;
 
     } else if (keymatch(arg, "version", 4)) {
-      fprintf(stderr, "%s version %s (build %s)\n",
+      fprintf(errorFile, "%s version %s (build %s)\n",
               PACKAGE_NAME, VERSION, BUILD);
-      exit(EXIT_SUCCESS);
+      return EXIT_FAILURE;
 
     } else if (keymatch(arg, "flip", 1)) {
       /* Mirror left-right or top-bottom. */
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (keymatch(argv[argn], "horizontal", 1))
-        select_transform(JXFORM_FLIP_H);
+      {
+        int select_transform_result = select_transform(JXFORM_FLIP_H, errorFile);
+        if (select_transform_result != EXIT_SUCCESS)
+          return select_transform_result;
+      }
       else if (keymatch(argv[argn], "vertical", 1))
-        select_transform(JXFORM_FLIP_V);
-      else
-        usage();
+      {
+        int select_transform_result = select_transform(JXFORM_FLIP_V, errorFile);
+        if (select_transform_result != EXIT_SUCCESS)
+          return select_transform_result;
+      }
+      else {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
 
     } else if (keymatch(arg, "grayscale", 1) ||
                keymatch(arg, "greyscale", 1)) {
@@ -275,8 +308,10 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 
     } else if (keymatch(arg, "icc", 1)) {
       /* Set ICC filename. */
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       icc_filename = argv[argn];
 
     } else if (keymatch(arg, "maxmemory", 3)) {
@@ -284,34 +319,44 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
       long lval;
       char ch = 'x';
 
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
-      if (sscanf(argv[argn], "%ld%c", &lval, &ch) < 1)
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
+      if (sscanf(argv[argn], "%ld%c", &lval, &ch) < 1) {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (ch == 'm' || ch == 'M')
         lval *= 1000L;
       cinfo->mem->max_memory_to_use = lval * 1000L;
 
     } else if (keymatch(arg, "maxscans", 4)) {
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
-      if (sscanf(argv[argn], "%u", &max_scans) != 1)
-        usage();
+      if (++argn >= argc) {      /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
+      if (sscanf(argv[argn], "%u", &max_scans) != 1) {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
 
     } else if (keymatch(arg, "optimize", 1) || keymatch(arg, "optimise", 1)) {
       /* Enable entropy parm optimization. */
 #ifdef ENTROPY_OPT_SUPPORTED
       cinfo->optimize_coding = TRUE;
 #else
-      fprintf(stderr, "%s: sorry, entropy optimization was not compiled\n",
+      fprintf(error_file, "%s: sorry, entropy optimization was not compiled\n",
               progname);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
 #endif
 
     } else if (keymatch(arg, "outfile", 4)) {
       /* Set output file name. */
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       outfilename = argv[argn]; /* save it away for later use */
 
     } else if (keymatch(arg, "perfect", 2)) {
@@ -325,9 +370,9 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
       simple_progressive = TRUE;
       /* We must postpone execution until num_components is known. */
 #else
-      fprintf(stderr, "%s: sorry, progressive output was not compiled\n",
+      fprintf(error_file, "%s: sorry, progressive output was not compiled\n",
               progname);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
 #endif
 
     } else if (keymatch(arg, "report", 3)) {
@@ -338,12 +383,18 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
       long lval;
       char ch = 'x';
 
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
-      if (sscanf(argv[argn], "%ld%c", &lval, &ch) < 1)
-        usage();
-      if (lval < 0 || lval > 65535L)
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
+      if (sscanf(argv[argn], "%ld%c", &lval, &ch) < 1) {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
+      if (lval < 0 || lval > 65535L) {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (ch == 'b' || ch == 'B') {
         cinfo->restart_interval = (unsigned int)lval;
         cinfo->restart_in_rows = 0; /* else prior '-restart n' overrides me */
@@ -354,28 +405,46 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 
     } else if (keymatch(arg, "rotate", 2)) {
       /* Rotate 90, 180, or 270 degrees (measured clockwise). */
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (keymatch(argv[argn], "90", 2))
-        select_transform(JXFORM_ROT_90);
+      {
+        int select_transform_result = select_transform(JXFORM_ROT_90, errorFile);
+        if (select_transform_result != EXIT_SUCCESS)
+          return select_transform_result;
+      }
       else if (keymatch(argv[argn], "180", 3))
-        select_transform(JXFORM_ROT_180);
+      {
+        int select_transform_result = select_transform(JXFORM_ROT_180, errorFile);
+        if (select_transform_result != EXIT_SUCCESS)
+          return select_transform_result;
+      }
       else if (keymatch(argv[argn], "270", 3))
-        select_transform(JXFORM_ROT_270);
-      else
-        usage();
+      {
+        int select_transform_result = select_transform(JXFORM_ROT_270, errorFile);
+        if (select_transform_result != EXIT_SUCCESS)
+          return select_transform_result;
+      }
+      else {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
 
     } else if (keymatch(arg, "scans", 1)) {
       /* Set scan script. */
 #ifdef C_MULTISCAN_FILES_SUPPORTED
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {     /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       scansarg = argv[argn];
       /* We must postpone reading the file in case -progressive appears. */
 #else
-      fprintf(stderr, "%s: sorry, multi-scan output was not compiled\n",
+      fprintf(error_file, "%s: sorry, multi-scan output was not compiled\n",
               progname);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
 #endif
 
     } else if (keymatch(arg, "strict", 2)) {
@@ -383,11 +452,15 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 
     } else if (keymatch(arg, "transpose", 1)) {
       /* Transpose (across UL-to-LR axis). */
-      select_transform(JXFORM_TRANSPOSE);
+      int select_transform_result = select_transform(JXFORM_TRANSPOSE, errorFile);
+      if (select_transform_result != EXIT_SUCCESS)
+        return select_transform_result;
 
     } else if (keymatch(arg, "transverse", 6)) {
       /* Transverse transpose (across UR-to-LL axis). */
-      select_transform(JXFORM_TRANSVERSE);
+      int select_transform_result = select_transform(JXFORM_TRANSVERSE, errorFile);
+      if (select_transform_result != EXIT_SUCCESS)
+        return select_transform_result;
 
     } else if (keymatch(arg, "trim", 3)) {
       /* Trim off any partial edge MCUs that the transform can't handle. */
@@ -395,21 +468,26 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 
     } else if (keymatch(arg, "wipe", 1)) {
 #if TRANSFORMS_SUPPORTED
-      if (++argn >= argc)       /* advance to next argument */
-        usage();
+      if (++argn >= argc) {      /* advance to next argument */
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
       if (transformoption.crop /* reject multiple crop/drop/wipe requests */ ||
           !jtransform_parse_crop_spec(&transformoption, argv[argn])) {
-        fprintf(stderr, "%s: bogus -wipe argument '%s'\n",
+        fprintf(errorFile, "%s: bogus -wipe argument '%s'\n",
                 progname, argv[argn]);
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
       }
-      select_transform(JXFORM_WIPE);
+      int select_transform_result = select_transform(JXFORM_WIPE, errorFile);
+      if (select_transform_result != EXIT_SUCCESS)
+        return select_transform_result;
 #else
       select_transform(JXFORM_NONE);    /* force an error */
 #endif
 
     } else {
-      usage();                  /* bogus switch */
+      usage(errorFile);                  /* bogus switch */
+      return EXIT_FAILURE;
     }
   }
 
@@ -424,43 +502,57 @@ parse_switches(j_compress_ptr cinfo, int argc, char **argv,
 
 #ifdef C_MULTISCAN_FILES_SUPPORTED
     if (scansarg != NULL)       /* process -scans if it was present */
-      if (!read_scan_script(cinfo, scansarg))
-        usage();
+      if (!read_scan_script(cinfo, scansarg)) {
+        usage(errorFile);
+        return EXIT_FAILURE;
+      }
 #endif
   }
 
-  return argn;                  /* return index of next arg (file name) */
+  (*parse_switches_result) = argn;
+  return EXIT_SUCCESS;
 }
 
-
-METHODDEF(void)
-my_emit_message(j_common_ptr cinfo, int msg_level)
+struct jpeg_error_mgr_mod
 {
-  if (msg_level < 0) {
-    /* Treat warning as fatal */
-    cinfo->err->error_exit(cinfo);
-  } else {
-    if (cinfo->err->trace_level >= msg_level)
-      cinfo->err->output_message(cinfo);
-  }
+    struct jpeg_error_mgr pub;
+    FILE* error_file;
+    jmp_buf jump_buffer;
+};
+
+METHODDEF(void) output_message_mod(j_common_ptr cinfo)
+{
+#define JMSG_LENGTH_MAX  200
+  char buffer[JMSG_LENGTH_MAX];
+  (*cinfo->err->format_message) (cinfo, buffer);
+
+  struct jpeg_error_mgr_mod* err_mod = (struct jpeg_error_mgr_mod*) cinfo->err;
+  if (err_mod->error_file != NULL)
+    fprintf(err_mod->error_file, "%s\n", buffer);
 }
 
+METHODDEF(void) error_exit_mod(j_common_ptr cinfo)
+{
+  (*cinfo->err->output_message) (cinfo);
 
-/*
- * The main program.
- */
+  jpeg_destroy(cinfo);
 
-int
-main(int argc, char **argv)
+  struct jpeg_error_mgr_mod* err_mod = (struct jpeg_error_mgr_mod*) cinfo->err;
+  longjmp(err_mod->jump_buffer, EXIT_FAILURE);
+}
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+int jpegtran(int argc, char **argv, FILE* errorFile, int quality)
 {
   struct jpeg_decompress_struct srcinfo;
 #if TRANSFORMS_SUPPORTED
   struct jpeg_decompress_struct dropinfo;
-  struct jpeg_error_mgr jdroperr;
+  struct jpeg_error_mgr_mod jdroperr;
   FILE *drop_file;
 #endif
   struct jpeg_compress_struct dstinfo;
-  struct jpeg_error_mgr jsrcerr, jdsterr;
+  struct jpeg_error_mgr_mod jsrcerr, jdsterr;
   struct cdjpeg_progress_mgr src_progress, dst_progress;
   jvirt_barray_ptr *src_coef_arrays;
   jvirt_barray_ptr *dst_coef_arrays;
@@ -478,11 +570,32 @@ main(int argc, char **argv)
     progname = "jpegtran";      /* in case C library doesn't provide it */
 
   /* Initialize the JPEG decompression object with default error handling. */
-  srcinfo.err = jpeg_std_error(&jsrcerr);
+  jpeg_std_error(&jsrcerr.pub);
+  srcinfo.err = &jsrcerr;
+  jsrcerr.error_file = errorFile;
+  jsrcerr.pub.output_message = output_message_mod;
+  jsrcerr.pub.error_exit = error_exit_mod;
+  if (setjmp(jsrcerr.jump_buffer) != EXIT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
+
   jpeg_create_decompress(&srcinfo);
+
   /* Initialize the JPEG compression object with default error handling. */
-  dstinfo.err = jpeg_std_error(&jdsterr);
+  jpeg_std_error(&jdsterr.pub);
+  dstinfo.err = &jdsterr;
+  jdsterr.error_file = errorFile;
+  jdsterr.pub.output_message = output_message_mod;
+  jdsterr.pub.error_exit = error_exit_mod;
+  if (setjmp(jdsterr.jump_buffer) != EXIT_SUCCESS) {
+    return EXIT_FAILURE;
+  }
+
   jpeg_create_compress(&dstinfo);
+
+  for (int tblno = 0; tblno < NUM_QUANT_TBLS; tblno++)
+    dstinfo.q_scale_factor[tblno] = jpeg_quality_scaling(MAX(0, MIN(100, quality)));
+  jpeg_default_qtables(&dstinfo, FALSE);
 
   /* Scan command line to find file names.
    * It is convenient to use just one switch-parsing routine, but the switch
@@ -492,72 +605,72 @@ main(int argc, char **argv)
    * needs to affect the source too.
    */
 
-  file_index = parse_switches(&dstinfo, argc, argv, 0, FALSE);
-  jsrcerr.trace_level = jdsterr.trace_level;
+  int parse_switches_result = parse_switches(&dstinfo, argc, argv, 0, FALSE, &file_index, errorFile);
+  if (parse_switches_result != EXIT_SUCCESS)
+    return parse_switches_result;
+  jsrcerr.pub.trace_level = jdsterr.pub.trace_level;
   srcinfo.mem->max_memory_to_use = dstinfo.mem->max_memory_to_use;
-
-  if (strict)
-    jsrcerr.emit_message = my_emit_message;
 
 #ifdef TWO_FILE_COMMANDLINE
   /* Must have either -outfile switch or explicit output file name */
   if (outfilename == NULL) {
     if (file_index != argc - 2) {
-      fprintf(stderr, "%s: must name one input and one output file\n",
+      fprintf(error_file, "%s: must name one input and one output file\n",
               progname);
-      usage();
+      usage(error_file);
     }
     outfilename = argv[file_index + 1];
   } else {
     if (file_index != argc - 1) {
-      fprintf(stderr, "%s: must name one input and one output file\n",
+      fprintf(error_file, "%s: must name one input and one output file\n",
               progname);
-      usage();
+      usage(error_file);
     }
   }
 #else
   /* Unix style: expect zero or one file name */
   if (file_index < argc - 1) {
-    fprintf(stderr, "%s: only one input file\n", progname);
-    usage();
+    fprintf(errorFile, "%s: only one input file\n", progname);
+    usage(errorFile);
+    return EXIT_FAILURE;
   }
 #endif /* TWO_FILE_COMMANDLINE */
 
   /* Open the input file. */
   if (file_index < argc) {
     if ((fp = fopen(argv[file_index], READ_BINARY)) == NULL) {
-      fprintf(stderr, "%s: can't open %s for reading\n", progname,
+      fprintf(errorFile, "%s: can't open %s for reading\n", progname,
               argv[file_index]);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
   } else {
-    /* default input file is stdin */
-    fp = read_stdin();
+    usage(errorFile);
+    return EXIT_FAILURE;
   }
 
   if (icc_filename != NULL) {
     if ((icc_file = fopen(icc_filename, READ_BINARY)) == NULL) {
-      fprintf(stderr, "%s: can't open %s\n", progname, icc_filename);
-      exit(EXIT_FAILURE);
+      fprintf(errorFile, "%s: can't open %s\n", progname, icc_filename);
+      return EXIT_FAILURE;
     }
     if (fseek(icc_file, 0, SEEK_END) < 0 ||
         (icc_len = ftell(icc_file)) < 1 ||
         fseek(icc_file, 0, SEEK_SET) < 0) {
-      fprintf(stderr, "%s: can't determine size of %s\n", progname,
+      fprintf(errorFile, "%s: can't determine size of %s\n", progname,
               icc_filename);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
     if ((icc_profile = (JOCTET *)malloc(icc_len)) == NULL) {
-      fprintf(stderr, "%s: can't allocate memory for ICC profile\n", progname);
+      fprintf(errorFile, "%s: can't allocate memory for ICC profile\n", progname);
       fclose(icc_file);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
     if (fread(icc_profile, icc_len, 1, icc_file) < 1) {
-      fprintf(stderr, "%s: can't read ICC profile from %s\n", progname,
+      fprintf(errorFile, "%s: can't read ICC profile from %s\n", progname,
               icc_filename);
       free(icc_profile);
       fclose(icc_file);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
     fclose(icc_file);
     if (copyoption == JCOPYOPT_ALL)
@@ -579,11 +692,18 @@ main(int argc, char **argv)
   /* Open the drop file. */
   if (dropfilename != NULL) {
     if ((drop_file = fopen(dropfilename, READ_BINARY)) == NULL) {
-      fprintf(stderr, "%s: can't open %s for reading\n", progname,
+      fprintf(errorFile, "%s: can't open %s for reading\n", progname,
               dropfilename);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
-    dropinfo.err = jpeg_std_error(&jdroperr);
+    jpeg_std_error(&jdroperr.pub);
+    dropinfo.err = &jdroperr;
+    jdroperr.error_file = errorFile;
+    jdroperr.pub.output_message = output_message_mod;
+    jdroperr.pub.error_exit = error_exit_mod;
+    if (setjmp(jdroperr.jump_buffer) != EXIT_SUCCESS) {
+      return EXIT_FAILURE;
+    }
     jpeg_create_decompress(&dropinfo);
     jpeg_stdio_src(&dropinfo, drop_file);
   } else {
@@ -618,8 +738,8 @@ main(int argc, char **argv)
   /* Fail right away if -perfect is given and transformation is not perfect.
    */
   if (!jtransform_request_workspace(&srcinfo, &transformoption)) {
-    fprintf(stderr, "%s: transformation is not perfect\n", progname);
-    exit(EXIT_FAILURE);
+    fprintf(errorFile, "%s: transformation is not perfect\n", progname);
+    return EXIT_FAILURE;
   }
 #endif
 
@@ -653,23 +773,24 @@ main(int argc, char **argv)
    * We cannot call jpeg_finish_decompress here since we still need the
    * virtual arrays allocated from the source object for processing.
    */
-  if (fp != stdin)
-    fclose(fp);
+  fclose(fp);
 
   /* Open the output file. */
   if (outfilename != NULL) {
     if ((fp = fopen(outfilename, WRITE_BINARY)) == NULL) {
-      fprintf(stderr, "%s: can't open %s for writing\n", progname,
+      fprintf(errorFile, "%s: can't open %s for writing\n", progname,
               outfilename);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
   } else {
-    /* default output file is stdout */
-    fp = write_stdout();
+    usage(errorFile);
+    return EXIT_FAILURE;
   }
 
   /* Adjust default compression parameters by re-parsing the options */
-  file_index = parse_switches(&dstinfo, argc, argv, 0, TRUE);
+  parse_switches_result = parse_switches(&dstinfo, argc, argv, 0, TRUE, &file_index, errorFile);
+  if (parse_switches_result != EXIT_SUCCESS)
+    return parse_switches_result;
 
   /* Specify data destination for compression */
   jpeg_stdio_dest(&dstinfo, fp);
@@ -702,8 +823,7 @@ main(int argc, char **argv)
   jpeg_destroy_decompress(&srcinfo);
 
   /* Close output file, if we opened it */
-  if (fp != stdout)
-    fclose(fp);
+  fclose(fp);
 #if TRANSFORMS_SUPPORTED
   if (drop_file != NULL)
     fclose(drop_file);
@@ -719,10 +839,37 @@ main(int argc, char **argv)
   /* All done. */
 #if TRANSFORMS_SUPPORTED
   if (dropfilename != NULL)
-    exit(jsrcerr.num_warnings + jdroperr.num_warnings +
-         jdsterr.num_warnings ? EXIT_WARNING : EXIT_SUCCESS);
+    return jsrcerr.pub.num_warnings + jdroperr.pub.num_warnings +
+           jdsterr.pub.num_warnings ? EXIT_WARNING : EXIT_SUCCESS;
 #endif
-  exit(jsrcerr.num_warnings + jdsterr.num_warnings ?
-       EXIT_WARNING : EXIT_SUCCESS);
-  return 0;                     /* suppress no-return-value warnings */
+  return jsrcerr.pub.num_warnings + jdsterr.pub.num_warnings ?
+         EXIT_WARNING : EXIT_SUCCESS;
 }
+#pragma clang diagnostic pop
+
+JNIEXPORT int JNICALL
+Java_ro_andob_jpegturbo_JPEGTurbo_jpegtran(JNIEnv* env, jclass clazz, int quality, jobjectArray argsFromJava)
+{
+  int argc = (*env)->GetArrayLength(env, argsFromJava);
+  char** argv = malloc(sizeof(char*)*argc);
+  for (int i=0; i<argc; i++)
+  {
+    jstring argFromJava = (*env)->GetObjectArrayElement(env, argsFromJava, i);
+    const char* rawArgFromJava = (*env)->GetStringUTFChars(env, argFromJava, 0);
+    char* arg = malloc(sizeof(char)*(strlen(rawArgFromJava)+1));
+    strcpy(arg, rawArgFromJava);
+    (*env)->ReleaseStringUTFChars(env, argFromJava, rawArgFromJava);
+    argv[i] = arg;
+  }
+
+  FILE* errorFile = fopen(argv[0], "w");
+  int resultCode = jpegtran(argc, argv, errorFile, quality);
+  
+  for (int i=0; i<argc; i++)
+    free(argv[i]);
+  free(argv);
+  fclose(errorFile);
+  return resultCode;
+}
+
+#pragma clang diagnostic pop

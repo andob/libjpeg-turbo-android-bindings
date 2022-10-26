@@ -121,7 +121,6 @@ EXTERN(boolean) read_quant_tables(j_compress_ptr cinfo, char *filename,
 EXTERN(boolean) read_scan_script(j_compress_ptr cinfo, char *filename);
 EXTERN(boolean) set_quality_ratings(j_compress_ptr cinfo, char *arg,
                                     boolean force_baseline);
-EXTERN(boolean) set_quality_ratings_int(j_compress_ptr cinfo, int quality, boolean force_baseline);
 EXTERN(boolean) set_quant_slots(j_compress_ptr cinfo, char *arg);
 EXTERN(boolean) set_sample_factors(j_compress_ptr cinfo, char *arg);
 

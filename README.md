@@ -1,14 +1,9 @@
-#### Experiments with progressive JPEG encoding on Android.
+#### How to upgrade libjpeg-turbo version?
 
-Benchmark:
-
-- read a JPEG file, encode it to another file using lower quality and the standard Android SDK APIs (``Bitmap`` class - they also use jpeg-turbo, but not in progressive mode).
-- read a JPEG file, encode it to another file using lower quality, progressive JPEG format and the binded jpeg-turbo library.
-
-Benchmark results:
-
-| Device            | CPU                  | Progressive JPEG | Standard JPEG |
-|-------------------|----------------------|------------------|---------------|
-| Pixel 5           | arm64-v8a (64 bit)   | 3.1s             | 200ms         |
-| Motorola Moto G22 | arm64-v8a (64 bit)   | 5.8s             | 800ms         |
-| Samsung XCover 4  | armeabi-v7a (32 bit) | 12s              | 1.5s          |
+1. Go to JPEG-Turbo [releases](https://github.com/libjpeg-turbo/libjpeg-turbo/releases) and download latest release's source zip.
+2. Delete ``src/main/cpp/libjpeg-turbo-<old_version>`` and extract the archive into a new directory ``src/main/cpp/libjpeg-turbo-<new_version>``.
+3. Edit ``src/main/cpp/CMakeLists.txt``. Set ``LIBJPEG_TURBO_DIR`` variable to corresponding path. Set ``VERSION`` variable to the new version. Sync project.
+4. Add header guards where needed: ``jmorecfg.h``, ``jpegint.h``, ``jdmerge.h``. For instance, at the beginning of ``jpegint.h`` file: ``#ifndef _JPEG_INT_H_`` (newline) ``#define _JPEG_INT_H_`` then at the end of the file: ``#endif``.
+5. To remove ``JPEG_INTERNALS`` macro redefined warning, find ``#define JPEG_INTERNALS`` everywhere. Replace with ``#ifndef JPEG_INTERNALS`` (newline) ``#define JPEG_INTERNALS`` (newline) ``#endif``.
+6. Build and fix compilation errors.
+7. Test and fix runtime errors.

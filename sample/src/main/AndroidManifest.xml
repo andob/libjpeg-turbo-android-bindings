@@ -6,10 +6,12 @@
         android:allowBackup="true"
         android:supportsRtl="true"
         tools:targetApi="31"
-        tools:ignore="MissingApplicationIcon">
+        tools:ignore="MissingApplicationIcon"
+        android:name=".App">
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

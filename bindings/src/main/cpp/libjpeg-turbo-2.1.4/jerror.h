@@ -1,5 +1,3 @@
-#ifndef _JERROR_H_
-#define _JERROR_H_
 /*
  * jerror.h
  *
@@ -331,4 +329,3 @@ JMESSAGE(JERR_BAD_DROP_SAMPLING,
    (*(cinfo)->err->emit_message) ((j_common_ptr)(cinfo), (lvl)))
 
 #endif /* JERROR_H */
-#endif
