@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.core.content.FileProvider;
 import java.io.File;
-import ro.andob.jpegturbo.JPEGTranArgs;
+import ro.andob.jpegturbo.JPEGReencodeArgs;
 import ro.andob.jpegturbo.JPEGTurbo;
 
 public class MainActivity extends Activity
@@ -53,13 +53,12 @@ public class MainActivity extends Activity
             new Thread(() ->
             {
                 long startTime = System.currentTimeMillis();
-                JPEGTurbo.jpegtran(JPEGTranArgs.with(this)
+                JPEGTurbo.reencode(JPEGReencodeArgs.with(this)
                     .inputFile(inputFile)
                     .outputFile(outputFile)
                     .quality(85)
                     .progressive()
                     .optimize()
-                    .rotateAccordingToExif()
                     .verbose()
                     .errorLogger(Throwable::printStackTrace)
                     .warningLogger(Throwable::printStackTrace));

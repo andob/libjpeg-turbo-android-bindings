@@ -51,7 +51,6 @@ JPEGTurbo.jpegtran(JPEGTranArgs.with(context)
     .quality(85) //image quality, from 0 to 100
     .progressive() //encode to progressive JPEG instead of normal JPEG
     .optimize() //optimize encoded JPEG
-    .rotateAccordingToExif() //rotate JPEG according to EXIF rotation attributes
     .errorLogger(Throwable::printStackTrace) //provide an error logger
     .warningLogger(Throwable::printStackTrace)); //provide a warning logger
 ```

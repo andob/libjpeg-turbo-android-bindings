@@ -2,7 +2,6 @@ package ro.andob.jpegturbo;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.List;
 
 public class JPEGTurbo
 {
@@ -15,30 +14,53 @@ public class JPEGTurbo
 
     static { System.loadLibrary("jpeg_turbo"); }
 
-    public static native int jpegtran(int quality, String... args);
+    public static native int reencodeNative(String inputFilePath, String outputFilePath, String errorFilePath,
+        int quality, boolean progressive, boolean optimize, boolean verbose);
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void jpegtran(JPEGTranArgs args)
+    public static void reencode(JPEGReencodeArgs args)
     {
         File errorFile = args.getContext().getFileStreamPath(ERROR_FILE_NAME);
         if (!errorFile.exists())
             errorFile.delete();
 
-        List<String> rawCommandLineArgs = args.getCommandLineArgs();
-        String[] commandLineArgs = new String[rawCommandLineArgs.size()+1];
-        commandLineArgs[0] = errorFile.getAbsolutePath();
-        for (int i = 0; i < rawCommandLineArgs.size(); i++)
-            commandLineArgs[i+1] = rawCommandLineArgs.get(i);
+        //todo neither android's ExifInterface nor apache commons imaging won't save orientation properly
+//        List<? extends ImageMetadata.ImageMetadataItem> exifProperties = Collections.emptyList();
+//        try { exifProperties = Imaging.getMetadata(args.getInputFile()).getItems(); }
+//        catch (ImageReadException | IOException ex) { args.getWarningLogger().accept(ex); }
 
-        int resultCode = jpegtran(args.getQuality(), commandLineArgs);
+        int resultCode = reencodeNative(
+            /*inputFilePath*/ args.getInputFile().getAbsolutePath(),
+            /*outputFilePath*/ args.getOutputFile().getAbsolutePath(),
+            /*errorFilePath*/ errorFile.getAbsolutePath(),
+            /*quality*/ args.getQuality(),
+            /*progressive*/ args.isProgressive(),
+            /*optimize*/ args.isOptimize(),
+            /*verbose*/ args.isVerbose());
+
+//        try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
+//        {
+//            TiffOutputSet outputSet = new TiffOutputSet();
+//            for (ImageMetadata.ImageMetadataItem item : exifProperties)
+//            {
+//                TiffOutputDirectory tiffOutputDirectory = outputSet.getOrCreateExifDirectory();
+////                tiffOutputDirectory.add(((TiffField)item).getTagInfo(), ((TiffField)item).getValue());
+//                TiffField inputField = ((TiffImageMetadata.TiffMetadataItem) item).getTiffField();
+//                TiffOutputField outputField = new TiffOutputField(inputField.getTagInfo(), inputField.getFieldType(), (int)inputField.getCount(), inputField.getByteArrayValue());
+//                tiffOutputDirectory.add(outputField);
+//            }
+//
+//            new ExifRewriter().updateExifMetadataLossy(args.getOutputFile(), baos, outputSet);
+//
+//            Files.write(args.getOutputFile().toPath(), baos.toByteArray(), StandardOpenOption.WRITE);
+//        }
+//        catch (ImageReadException | ImageWriteException | IOException ex)  { args.getWarningLogger().accept(ex); }
 
         if (resultCode != EXIT_SUCCESS || args.isVerbose())
         {
-            StringBuilder errorMessage = new StringBuilder("JPEGTurbo! ");
-            for (String rawCommandLineArg : rawCommandLineArgs)
-                errorMessage.append(rawCommandLineArg).append(" ");
+            StringBuilder errorMessage = new StringBuilder("JPEGTurbo! ").append(args);
 
-            errorMessage.append('\n').append("Result code: ");
+            errorMessage.append("\n\nResult code: ");
             if (resultCode == EXIT_SUCCESS) errorMessage.append("Success");
             else if (resultCode == EXIT_WARNING) errorMessage.append("Warning");
             else if (resultCode == EXIT_FAILURE) errorMessage.append("Failure");
@@ -46,7 +68,7 @@ public class JPEGTurbo
 
             if (errorFile.exists())
             {
-                try { errorMessage.append('\n').append(new String(Files.readAllBytes(errorFile.toPath()))); }
+                try { errorMessage.append("\n\n").append(new String(Files.readAllBytes(errorFile.toPath()))); }
                 catch (Throwable ex) { args.getWarningLogger().accept(ex); }
             }
 
@@ -54,7 +76,8 @@ public class JPEGTurbo
             {
                 RuntimeException ex = new RuntimeException(errorMessage.toString());
                 args.getErrorLogger().accept(ex);
-                throw ex;
+                if (args.shouldThrowOnError())
+                    throw ex;
             }
             else if (resultCode == EXIT_WARNING || args.isVerbose())
             {
