@@ -152,13 +152,11 @@ public class JPEGReencodeArgs
     @Override
     public String toString()
     {
-        return "JPEGTransformArgs{" +
-                ", inputFile=" + inputFile.getAbsolutePath() +
-                ", outputFile=" + outputFile.getAbsolutePath() +
-                ", quality=" + quality +
-                ", progressive=" + progressive +
-                ", optimize=" + optimize +
-                ", verbose=" + verbose +
-                '}';
+        return "inputFile=" + inputFile.getAbsolutePath() +
+            "\noutputFile=" + outputFile.getAbsolutePath() +
+            "\nquality=" + quality +
+            "\nprogressive=" + progressive +
+            "\noptimize=" + optimize +
+            "\nverbose=" + verbose;
     }
 }

@@ -2,6 +2,8 @@
 #include <setjmp.h>
 #include <transupp.h>
 #include <cdjpeg.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 typedef unsigned char byte;
 
@@ -309,4 +311,15 @@ Java_ro_andob_jpegturbo_JPEGTurbo_mergeExifAndJpegNative(
     (*env)->ReleaseStringUTFChars(env, input_exif_file_path_from_java, input_exif_file_path);
     (*env)->ReleaseStringUTFChars(env, input_image_file_path_from_java, input_image_file_path);
     (*env)->ReleaseStringUTFChars(env, output_file_path_from_java, output_file_path);
+}
+
+JNIEXPORT jint JNICALL
+Java_ro_andob_jpegturbo_FileIOUtils_createPipeFileNative(
+    JNIEnv *env, jclass clazz,
+    jstring pipe_file_path_from_java)
+{
+    const char* pipe_file_path = (*env)->GetStringUTFChars(env, pipe_file_path_from_java, 0);
+    int result = mkfifo(pipe_file_path, S_IRWXU | S_IRWXG | S_IROTH);
+    (*env)->ReleaseStringUTFChars(env, pipe_file_path_from_java, pipe_file_path);
+    return result;
 }
