@@ -79,42 +79,6 @@ static void release_memory(struct memory_to_release* memory_to_release)
         jpeg_destroy_compress(memory_to_release->compress_info);
 }
 
-static void parse_options(struct transform_args* args,
-    struct jpeg_compress_struct* compress_info,
-    struct jpeg_decompress_struct* decompress_info,
-    FILE* error_file)
-{
-    jpeg_set_quality(compress_info, args->quality, /*forceBaseline*/ FALSE);
-
-    if (args->progressive)
-    {
-        #ifdef C_PROGRESSIVE_SUPPORTED
-            jpeg_simple_progression(compress_info);
-        #else
-            #error Please compile with progressive JPEG support!
-        #endif
-    }
-
-    if (args->optimize)
-    {
-        #ifdef ENTROPY_OPT_SUPPORTED
-            compress_info->optimize_coding = TRUE;
-        #else
-            #error Please compile with JPEG optimisation support!
-        #endif
-    }
-
-    if (args->verbose)
-    {
-        fprintf(error_file, "%s version %s (build %s)\n", PACKAGE_NAME, VERSION, BUILD);
-        fprintf(error_file, "%s\n\n", JCOPYRIGHT);
-        fprintf(error_file, "Emulating The Independent JPEG Group's software, version %s\n\n", JVERSION);
-
-        compress_info->err->trace_level++;
-        decompress_info->err->trace_level++;
-    }
-}
-
 static int reencode(struct transform_args args)
 {
     struct memory_to_release defer_memory_to_release;
@@ -171,7 +135,26 @@ static int reencode(struct transform_args args)
     #pragma endregion
 
     #pragma region Parse input options
-    parse_options(&args, &compress_info, &decompress_info, error_file);
+    jpeg_set_quality(&compress_info, args.quality, /*forceBaseline*/ FALSE);
+
+    if (args.optimize)
+    {
+        #ifdef ENTROPY_OPT_SUPPORTED
+            compress_info.optimize_coding = TRUE;
+        #else
+            #error Please compile with JPEG optimisation support!
+        #endif
+    }
+
+    if (args.verbose)
+    {
+        fprintf(error_file, "%s version %s (build %s)\n", PACKAGE_NAME, VERSION, BUILD);
+        fprintf(error_file, "%s\n\n", JCOPYRIGHT);
+        fprintf(error_file, "Emulating The Independent JPEG Group's software, version %s\n\n", JVERSION);
+
+        compress_info.err->trace_level++;
+        decompress_info.err->trace_level++;
+    }
     #pragma endregion
 
     #pragma region Read input file
@@ -201,6 +184,15 @@ static int reencode(struct transform_args args)
         return EXIT_FAILURE;
     }
     defer_memory_to_release.output_file = output_file;
+
+    if (args.progressive)
+    {
+        #ifdef C_PROGRESSIVE_SUPPORTED
+            jpeg_simple_progression(&compress_info);
+        #else
+            #error Please compile with progressive JPEG support!
+        #endif
+    }
 
     jpeg_stdio_dest(&compress_info, output_file);
     jpeg_write_coefficients(&compress_info, coefficients);
