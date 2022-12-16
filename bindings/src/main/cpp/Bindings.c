@@ -12,7 +12,6 @@ struct transform_args
     const char* input_file_path;
     const char* output_file_path;
     const char* error_file_path;
-    int quality;
     boolean progressive;
     boolean optimize;
     boolean verbose;
@@ -135,8 +134,6 @@ static int reencode(struct transform_args args)
     #pragma endregion
 
     #pragma region Parse input options
-    jpeg_set_quality(&compress_info, args.quality, /*forceBaseline*/ FALSE);
-
     if (args.optimize)
     {
         #ifdef ENTROPY_OPT_SUPPORTED
@@ -211,7 +208,7 @@ static int reencode(struct transform_args args)
 JNIEXPORT jint JNICALL Java_ro_andob_jpegturbo_JPEGTurbo_reencodeNative(
     JNIEnv* env, jclass clazz,
     jstring input_file_path_from_java, jstring output_file_path_from_java, jstring error_file_path_from_java,
-    int quality, jboolean progressive, jboolean optimize, jboolean verbose)
+    jboolean progressive, jboolean optimize, jboolean verbose)
 {
     const char* input_file_path = (*env)->GetStringUTFChars(env, input_file_path_from_java, 0);
     const char* output_file_path = (*env)->GetStringUTFChars(env, output_file_path_from_java, 0);
@@ -221,7 +218,6 @@ JNIEXPORT jint JNICALL Java_ro_andob_jpegturbo_JPEGTurbo_reencodeNative(
     args.input_file_path = input_file_path;
     args.output_file_path = output_file_path;
     args.error_file_path = error_file_path;
-    args.quality = MAX(0, MIN(100, quality));
     args.progressive = progressive;
     args.optimize = optimize;
     args.verbose = verbose;

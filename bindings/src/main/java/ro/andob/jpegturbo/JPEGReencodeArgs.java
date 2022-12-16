@@ -10,7 +10,6 @@ public class JPEGReencodeArgs
     private final Context context;
     private File inputFile;
     private File outputFile;
-    private int quality = 85;
     private boolean progressive = false;
     private boolean optimize = false;
     private boolean verbose = false;
@@ -44,12 +43,6 @@ public class JPEGReencodeArgs
     {
         this.inputFile = Objects.requireNonNull(file);
         this.outputFile = Objects.requireNonNull(file);
-        return this;
-    }
-
-    public JPEGReencodeArgs quality(int quality)
-    {
-        this.quality = quality;
         return this;
     }
 
@@ -110,11 +103,6 @@ public class JPEGReencodeArgs
         return outputFile;
     }
 
-    int getQuality()
-    {
-        return quality;
-    }
-
     boolean isProgressive()
     {
         return progressive;
@@ -154,7 +142,6 @@ public class JPEGReencodeArgs
     {
         return "inputFile=" + inputFile.getAbsolutePath() +
             "\noutputFile=" + outputFile.getAbsolutePath() +
-            "\nquality=" + quality +
             "\nprogressive=" + progressive +
             "\noptimize=" + optimize +
             "\nverbose=" + verbose;

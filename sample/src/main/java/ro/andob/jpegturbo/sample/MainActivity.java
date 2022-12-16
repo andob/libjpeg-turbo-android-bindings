@@ -68,7 +68,7 @@ public class MainActivity extends Activity
                 {
                     Bitmap bitmap=BitmapFactory.decodeFile(inputFile.getAbsolutePath());
                     try (FileOutputStream outputStream=new FileOutputStream(outputFile)) {
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream);
                     } catch (Exception ignored) {}
                 });
 
@@ -77,7 +77,6 @@ public class MainActivity extends Activity
                     JPEGTurbo.reencode(JPEGReencodeArgs.with(this)
                         .inputFile(inputFile)
                         .outputFile(outputFile)
-                        .quality(85)
                         .optimize()
                         .verbose()
                         .errorLogger(Throwable::printStackTrace)
@@ -89,7 +88,6 @@ public class MainActivity extends Activity
                     JPEGTurbo.reencode(JPEGReencodeArgs.with(this)
                         .inputFile(inputFile)
                         .outputFile(outputFile)
-                        .quality(85)
                         .optimize()
                         .progressive()
                         .verbose()

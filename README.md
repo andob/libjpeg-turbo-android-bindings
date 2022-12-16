@@ -26,7 +26,7 @@ android {
 }
 
 dependencies {
-    implementation 'ro.andob.jpegturbo:jpegturbo-bindings:1.0.5'
+    implementation 'ro.andob.jpegturbo:jpegturbo-bindings:1.0.6'
 }
 ```
 

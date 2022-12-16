@@ -14,7 +14,7 @@ public class JPEGTurbo
     static { System.loadLibrary("jpeg_turbo"); }
 
     private static native int reencodeNative(String inputFilePath, String outputFilePath, String errorFilePath,
-        int quality, boolean progressive, boolean optimize, boolean verbose);
+        boolean progressive, boolean optimize, boolean verbose);
 
     private static native void mergeExifAndJpegNative(String inputExifFilePath, String inputImageFilePath, String outputFilePath);
 
@@ -33,7 +33,6 @@ public class JPEGTurbo
                     /*inputFilePath*/ inputPipeFile.getAbsolutePath(),
                     /*outputFilePath*/ intermediateFile.getAbsolutePath(),
                     /*errorFilePath*/ errorFile.getAbsolutePath(),
-                    /*quality*/ args.getQuality(),
                     /*progressive*/ args.isProgressive(),
                     /*optimize*/ args.isOptimize(),
                     /*verbose*/ args.isVerbose()
