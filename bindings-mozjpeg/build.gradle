@@ -11,10 +11,10 @@ android {
             buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"mozjpeg\""
             externalNativeBuild {
                 cmake {
-                    arguments "-DANDROID_ARM_NEON=ON",
-                              "-DLIBRARY_NAME=mozjpeg",
+                    arguments "-DLIBRARY_NAME=mozjpeg",
                               "-DLIBJPEG_TURBO_DIR_NAME=mozjpeg-4.1.1",
-                              "-DJAVA_CLASS_NAME=ro_andob_jpegturbo_MozjpegNative"
+                              "-DJAVA_CLASS_NAME=ro_andob_jpegturbo_MozjpegNative",
+                              "-DANDROID_ARM_NEON=ON"
                 }
             }
         }
@@ -53,7 +53,7 @@ project.afterEvaluate {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
                 artifactId 'bindings-mozjpeg'
-                version '1.0.7'
+                version '1.0.8'
             }
         }
     }
