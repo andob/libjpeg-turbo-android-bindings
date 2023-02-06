@@ -7,6 +7,6 @@ read -s -r MAVEN_PUBLISH_PASSWORD
 
 echo "Publishing..."
 
-./gradlew :bindings:clean :bindings:publish
+./gradlew :api:clean :bindings-jpegturbo:clean :bindings-mozjpeg:clean :api:publish :bindings-jpegturbo:publish :bindings-mozjpeg:publish
 
 set +o allexport

@@ -30,5 +30,7 @@ android {
 dependencies {
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'com.github.bumptech.glide:glide:4.14.2'
-    implementation project(":bindings")
+    implementation project(':api')
+    implementation project(':bindings-jpegturbo')
+    implementation project(':bindings-mozjpeg')
 }

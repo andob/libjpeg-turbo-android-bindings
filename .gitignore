@@ -1,7 +1,10 @@
 .gradle/
 .idea/
-bindings/.cxx/
-bindings/build/
+api/build/
+bindings-jpegturbo/.cxx/
+bindings-mozjpeg/.cxx/
+bindings-jpegturbo/build/
+bindings-mozjpeg/build/
 sample/build/
 sample/release/
 local.properties

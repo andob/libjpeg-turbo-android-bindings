@@ -11,22 +11,22 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import ro.andob.jpegturbo.JPEGReencodeArgs;
 import ro.andob.jpegturbo.JPEGTurbo;
+import ro.andob.jpegturbo.Mozjpeg;
 
 public class MainActivity extends Activity
 {
     private final File inputFile = App.context.getFileStreamPath("input.jpg");
     private final File outputFile = App.context.getFileStreamPath("output.jpg");
 
-    private ImageView imageView;
+    private TextView textView;
 
     @Override
     @SuppressLint("SourceLockedOrientationActivity")
@@ -35,10 +35,10 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        imageView = new ImageView(this);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        imageView.setBackgroundColor(Color.BLACK);
-        setContentView(imageView);
+        textView = new TextView(this);
+        textView.setBackgroundColor(Color.BLACK);
+        textView.setTextColor(Color.WHITE);
+        setContentView(textView);
 
         new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
@@ -49,12 +49,44 @@ public class MainActivity extends Activity
         }, 1000);
     }
 
-    private static long benchmark(Runnable toRun)
+    private static class BenchmarkResults
+    {
+        public final long deltaTime;
+        public final long oldFileSize;
+        public final long newFileSize;
+
+        public BenchmarkResults(long deltaTime, long oldFileSize, long newFileSize)
+        {
+            this.deltaTime = deltaTime;
+            this.oldFileSize = oldFileSize;
+            this.newFileSize = newFileSize;
+        }
+
+        @Override
+        public @NonNull String toString()
+        {
+            return "Took: "+deltaTime+"ms\n"+
+                   "Old file size: "+(((double)oldFileSize)/1024/1024)+"MB\n"+
+                   "New file size: "+(((double)newFileSize)/1024/1024)+"MB\n";
+        }
+    }
+
+    private BenchmarkResults benchmark(Runnable toRun)
     {
         long startTime = System.currentTimeMillis();
         toRun.run();
         long stopTime = System.currentTimeMillis();
-        return stopTime-startTime;
+        long deltaTime = stopTime-startTime;
+
+        long oldFileSize = 0;
+        try (FileInputStream inputStream = new FileInputStream(inputFile)) { oldFileSize = inputStream.available(); }
+        catch (Exception ignored) {}
+
+        long newFileSize = 0;
+        try (FileInputStream inputStream = new FileInputStream(outputFile)) { newFileSize = inputStream.available(); }
+        catch (Exception ignored) {}
+
+        return new BenchmarkResults(deltaTime, oldFileSize, newFileSize);
     }
 
     @Override
@@ -64,7 +96,7 @@ public class MainActivity extends Activity
         {
             new Thread(() ->
             {
-                long systemTime = benchmark(() ->
+                BenchmarkResults reference = benchmark(() ->
                 {
                     Bitmap bitmap=BitmapFactory.decodeFile(inputFile.getAbsolutePath());
                     try (FileOutputStream outputStream=new FileOutputStream(outputFile)) {
@@ -72,45 +104,31 @@ public class MainActivity extends Activity
                     } catch (Exception ignored) {}
                 });
 
-                long turboBaselineTime = benchmark(() ->
-                {
+                BenchmarkResults turbojpeg = benchmark(() ->
                     JPEGTurbo.reencode(JPEGReencodeArgs.with(this)
                         .inputFile(inputFile)
                         .outputFile(outputFile)
                         .optimize()
                         .verbose()
                         .errorLogger(Throwable::printStackTrace)
-                        .warningLogger(Throwable::printStackTrace));
-                });
+                        .warningLogger(Throwable::printStackTrace)));
 
-                long turboProgressiveTime = benchmark(() ->
-                {
-                    JPEGTurbo.reencode(JPEGReencodeArgs.with(this)
+                BenchmarkResults mozjpeg = benchmark(() ->
+                    Mozjpeg.reencode(JPEGReencodeArgs.with(this)
                         .inputFile(inputFile)
                         .outputFile(outputFile)
                         .optimize()
-                        .progressive()
                         .verbose()
                         .errorLogger(Throwable::printStackTrace)
-                        .warningLogger(Throwable::printStackTrace));
-                });
+                        .warningLogger(Throwable::printStackTrace)));
 
                 StringBuilder benchmarkResults = new StringBuilder();
-                benchmarkResults.append("Sys:").append(systemTime).append("ms");
-                benchmarkResults.append(" TJB:").append(turboBaselineTime).append("ms");
-                benchmarkResults.append(" TJP:").append(turboProgressiveTime).append("ms");
+                benchmarkResults.append("Reference:\n").append(reference).append("\n\n\n");
+                benchmarkResults.append(" Turbojpeg:\n").append(turbojpeg).append("\n\n\n");
+                benchmarkResults.append(" Mozjpeg:\n").append(mozjpeg).append("\n\n\n");
                 benchmarkResults.append(BuildConfig.DEBUG?" (DEBUG MODE! Release builds are much faster!)":"");
 
-                runOnUiThread(() ->
-                {
-                    Toast.makeText(App.context, benchmarkResults.toString(), Toast.LENGTH_LONG).show();
-
-                    Glide.with(imageView)
-                        .load(outputFile)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .skipMemoryCache(true)
-                        .into(imageView);
-                });
+                runOnUiThread(() -> textView.setText(benchmarkResults));
             }).start();
         }
     }

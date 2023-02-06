@@ -1,0 +1,60 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+android {
+    namespace 'ro.andob.jpegturbo.mozjpeg_native'
+    compileSdkVersion 33
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 33
+        defaultConfig {
+            buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"mozjpeg\""
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_ARM_NEON=ON",
+                              "-DLIBRARY_NAME=mozjpeg",
+                              "-DLIBJPEG_TURBO_DIR_NAME=mozjpeg-4.1.1",
+                              "-DJAVA_CLASS_NAME=ro_andob_jpegturbo_MozjpegNative"
+                }
+            }
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+    publishing {
+        singleVariant("release") {}
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path '../native/CMakeLists.txt'
+        }
+    }
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            repositories.maven {
+                url 'https://maven.andob.info/repository/open_source/'
+                credentials {
+                    username "$System.env.MAVEN_PUBLISH_USERNAME"
+                    password "$System.env.MAVEN_PUBLISH_PASSWORD"
+                }
+            }
+
+            release(MavenPublication) {
+                from components.release
+                groupId 'ro.andob.jpegturbo'
+                artifactId 'bindings-mozjpeg'
+                version '1.0.7'
+            }
+        }
+    }
+}

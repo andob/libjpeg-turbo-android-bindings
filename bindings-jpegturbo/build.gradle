@@ -1,0 +1,60 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+android {
+    namespace 'ro.andob.jpegturbo.jpegturbo_native'
+    compileSdkVersion 33
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 33
+        defaultConfig {
+            buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"jpegturbo\""
+            externalNativeBuild {
+                cmake {
+                    arguments "-DANDROID_ARM_NEON=ON",
+                              "-DLIBRARY_NAME=jpegturbo",
+                              "-DLIBJPEG_TURBO_DIR_NAME=libjpeg-turbo-2.1.4",
+                              "-DJAVA_CLASS_NAME=ro_andob_jpegturbo_JPEGTurboNative"
+                }
+            }
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+    publishing {
+        singleVariant("release") {}
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path '../native/CMakeLists.txt'
+        }
+    }
+}
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            repositories.maven {
+                url 'https://maven.andob.info/repository/open_source/'
+                credentials {
+                    username "$System.env.MAVEN_PUBLISH_USERNAME"
+                    password "$System.env.MAVEN_PUBLISH_PASSWORD"
+                }
+            }
+
+            release(MavenPublication) {
+                from components.release
+                groupId 'ro.andob.jpegturbo'
+                artifactId 'bindings-jpegturbo'
+                version '1.0.7'
+            }
+        }
+    }
+}
