@@ -91,7 +91,7 @@ Note that debug builds are much slower and do not benefit from SIMD optimisation
 1. While standard Android SDK Bitmap class is fine, jpeg-turbo is faster, because it uses SIMD (ARM NEON) instructions.
 2. While mozjpeg is bit slower than jpeg-turbo and the Bitmap class, it outputs smaller JPEG images.
 3. Android SDK's Bitmap class is not able to compress into a progressive JPEG, only baseline JPEG. This library can encode into baseline JPEGs, as well as progressive JPEGs. A progressive JPEG file is a kind of image which can be rendered while it gets downloaded.
-4. Edge computing / client side processing. Instead of transforming images on the server, after they are uploaded to the server, one can transform the files on device, before uploading them (saves both bandwidth and server disk space).
+4. Edge computing / client side processing. Instead of transforming images on the server, after they are uploaded to the server, one can transform the files on device, before uploading them.
 
 #### (Note for myself) How to upgrade libjpeg-turbo version?
 
