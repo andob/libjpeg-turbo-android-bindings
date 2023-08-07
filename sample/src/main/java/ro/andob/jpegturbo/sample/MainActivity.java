@@ -98,8 +98,8 @@ public class MainActivity extends Activity
             {
                 BenchmarkResults reference = benchmark(() ->
                 {
-                    Bitmap bitmap=BitmapFactory.decodeFile(inputFile.getAbsolutePath());
-                    try (FileOutputStream outputStream=new FileOutputStream(outputFile)) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(inputFile.getAbsolutePath());
+                    try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream);
                     } catch (Exception ignored) {}
                 });
