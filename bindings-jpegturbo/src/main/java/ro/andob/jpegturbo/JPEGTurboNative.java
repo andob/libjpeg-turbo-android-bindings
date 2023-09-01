@@ -9,7 +9,7 @@ final class JPEGTurboNative
     static native int reencode(String inputFilePath, String outputFilePath, String errorFilePath,
                                boolean progressive, boolean optimize, boolean verbose);
 
-    static native void mergeExifAndJpeg(String inputExifFilePath, String inputImageFilePath, String outputFilePath);
+    static native int mergeExifAndJpeg(String inputExifFilePath, String inputImageFilePath, String outputFilePath);
 
     static native int createPipeFile(String pipeFilePath);
 }

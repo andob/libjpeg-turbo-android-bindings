@@ -50,42 +50,49 @@ struct memory_to_release
     struct jpeg_compress_struct* compress_info;
     FILE* input_file;
     FILE* output_file;
-
-    boolean was_error_file_closed;
-    boolean was_decompress_info_destroyed;
-    boolean was_compress_info_destroyed;
-    boolean was_input_file_closed;
-    boolean was_output_file_closed;
 };
 
 static void close_input_file(struct memory_to_release* memory_to_release)
 {
-    if (!memory_to_release->was_input_file_closed)
+    if (memory_to_release->input_file != NULL)
+    {
         fclose(memory_to_release->input_file);
+        memory_to_release->input_file = NULL;
+    }
 }
 
 static void release_memory(struct memory_to_release* memory_to_release)
 {
-    if (!memory_to_release->was_error_file_closed && memory_to_release->error_file != NULL)
+    if (memory_to_release->error_file != NULL)
+    {
         fclose(memory_to_release->error_file);
-    if (!memory_to_release->was_input_file_closed && memory_to_release->input_file != NULL)
+        memory_to_release->error_file = NULL;
+    }
+    if (memory_to_release->input_file != NULL)
+    {
         fclose(memory_to_release->input_file);
-    if (!memory_to_release->was_output_file_closed && memory_to_release->output_file != NULL)
+        memory_to_release->input_file = NULL;
+    }
+    if (memory_to_release->output_file != NULL)
+    {
         fclose(memory_to_release->output_file);
-    if (!memory_to_release->was_decompress_info_destroyed && memory_to_release->decompress_info != NULL)
+        memory_to_release->output_file = NULL;
+    }
+    if (memory_to_release->decompress_info != NULL)
+    {
         jpeg_destroy_decompress(memory_to_release->decompress_info);
-    if (!memory_to_release->was_compress_info_destroyed && memory_to_release->compress_info != NULL)
+        memory_to_release->decompress_info = NULL;
+    }
+    if (memory_to_release->compress_info != NULL)
+    {
         jpeg_destroy_compress(memory_to_release->compress_info);
+        memory_to_release->compress_info = NULL;
+    }
 }
 
 static int reencode(struct transform_args args)
 {
     struct memory_to_release defer_memory_to_release;
-    defer_memory_to_release.was_error_file_closed = FALSE;
-    defer_memory_to_release.was_decompress_info_destroyed = FALSE;
-    defer_memory_to_release.was_compress_info_destroyed = FALSE;
-    defer_memory_to_release.was_input_file_closed = FALSE;
-    defer_memory_to_release.was_output_file_closed = FALSE;
 
     #pragma region Create error file
     FILE* error_file = fopen(args.error_file_path, "w");
@@ -302,6 +309,7 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     (*env)->ReleaseStringUTFChars(env, input_exif_file_path_from_java, input_exif_file_path);
     (*env)->ReleaseStringUTFChars(env, input_image_file_path_from_java, input_image_file_path);
     (*env)->ReleaseStringUTFChars(env, output_file_path_from_java, output_file_path);
+    return EXIT_SUCCESS;
 }
 
 CREATE_JAVA_METHOD(createPipeFile)(
