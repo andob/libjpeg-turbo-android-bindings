@@ -53,7 +53,7 @@ project.afterEvaluate {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
                 artifactId 'bindings-jpegturbo'
-                version '1.0.8'
+                version '1.0.9'
             }
         }
     }
