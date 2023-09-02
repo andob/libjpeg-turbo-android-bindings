@@ -93,6 +93,11 @@ static void release_memory(struct memory_to_release* memory_to_release)
 static int reencode(struct transform_args args)
 {
     struct memory_to_release defer_memory_to_release;
+    defer_memory_to_release.error_file = NULL;
+    defer_memory_to_release.decompress_info = NULL;
+    defer_memory_to_release.compress_info = NULL;
+    defer_memory_to_release.input_file = NULL;
+    defer_memory_to_release.output_file = NULL;
 
     #pragma region Create error file
     FILE* error_file = fopen(args.error_file_path, "w");
