@@ -18,9 +18,9 @@ repositories {
 
 ```
 dependencies {
-    implementation 'ro.andob.jpegturbo:bindings-api:1.1.0'
-    implementation 'ro.andob.jpegturbo:bindings-jpegturbo:1.1.0'
-    implementation 'ro.andob.jpegturbo:bindings-mozjpeg:1.1.0'
+    implementation 'ro.andob.jpegturbo:bindings-api:1.1.1'
+    implementation 'ro.andob.jpegturbo:bindings-jpegturbo:1.1.1'
+    implementation 'ro.andob.jpegturbo:bindings-mozjpeg:1.1.1'
 }
 ```
 

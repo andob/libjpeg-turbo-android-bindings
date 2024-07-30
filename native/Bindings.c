@@ -264,6 +264,7 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     byte *exif_data = NULL, *image_data = NULL;
 
     FILE* input_exif_file = fopen(input_exif_file_path, "rb");
+    if (input_exif_file == NULL) return EXIT_FAILURE;
     byte two_bytes[2];
     fread(two_bytes, sizeof(byte), 2, input_exif_file);
     if (two_bytes[0] == jpeg_marker[0] && two_bytes[1] == jpeg_marker[1])
@@ -283,6 +284,7 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     fclose(input_exif_file);
 
     FILE* input_image_file = fopen(input_image_file_path, "rb");
+    if (input_image_file == NULL) return EXIT_FAILURE;
     fseek(input_image_file, 0L, SEEK_END);
     image_size = ftell(input_image_file);
     rewind(input_image_file);
