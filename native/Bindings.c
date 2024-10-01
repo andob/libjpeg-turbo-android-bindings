@@ -256,10 +256,6 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     const char* input_image_file_path = (*env)->GetStringUTFChars(env, input_image_file_path_from_java, 0);
     const char* output_file_path = (*env)->GetStringUTFChars(env, output_file_path_from_java, 0);
 
-    #define ReleaseJavaStrings (*env)->ReleaseStringUTFChars(env, input_exif_file_path_from_java, input_exif_file_path); \
-        (*env)->ReleaseStringUTFChars(env, input_image_file_path_from_java, input_image_file_path); \
-        (*env)->ReleaseStringUTFChars(env, output_file_path_from_java, output_file_path);
-
     //JPEG specification - see https://stackoverflow.com/a/48814876
     byte jpeg_marker[] = { 0xFF, 0xD8 };
     byte exif_marker[] = { 0xFF, 0xE1 };
@@ -267,8 +263,13 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     int exif_size = 0, image_size = 0;
     byte *exif_data = NULL, *image_data = NULL;
 
+    #define ReleaseMemory if (image_data) free(image_data); if (exif_data) free(exif_data);\
+        (*env)->ReleaseStringUTFChars(env, input_exif_file_path_from_java, input_exif_file_path); \
+        (*env)->ReleaseStringUTFChars(env, input_image_file_path_from_java, input_image_file_path); \
+        (*env)->ReleaseStringUTFChars(env, output_file_path_from_java, output_file_path);
+
     FILE* input_exif_file = fopen(input_exif_file_path, "rb");
-    if (input_exif_file == NULL) { ReleaseJavaStrings return EXIT_FAILURE; }
+    if (input_exif_file == NULL) { ReleaseMemory return EXIT_FAILURE; }
     byte two_bytes[2];
     fread(two_bytes, sizeof(byte), 2, input_exif_file);
     if (two_bytes[0] == jpeg_marker[0] && two_bytes[1] == jpeg_marker[1])
@@ -288,7 +289,7 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     fclose(input_exif_file);
 
     FILE* input_image_file = fopen(input_image_file_path, "rb");
-    if (input_image_file == NULL) { ReleaseJavaStrings return EXIT_FAILURE; }
+    if (input_image_file == NULL) { ReleaseMemory return EXIT_FAILURE; }
     fseek(input_image_file, 0L, SEEK_END);
     image_size = ftell(input_image_file);
     rewind(input_image_file);
@@ -312,10 +313,8 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
         rename(input_image_file_path, output_file_path);
     }
 
-    ReleaseJavaStrings;
-    #undef ReleaseJavaStrings
-    if (image_data != NULL) free(image_data);
-    if (exif_data != NULL) free(exif_data);
+    ReleaseMemory;
+    #undef ReleaseMemory
     return EXIT_SUCCESS;
 }
 
