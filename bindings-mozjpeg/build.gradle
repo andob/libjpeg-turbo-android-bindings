@@ -3,10 +3,10 @@ apply plugin: 'maven-publish'
 
 android {
     namespace 'ro.andob.jpegturbo.mozjpeg_native'
-    compileSdk 33
+    compileSdk 35
     defaultConfig {
         minSdk 26
-        targetSdk 33
+        targetSdk 35
         defaultConfig {
             buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"mozjpeg\""
             externalNativeBuild {
@@ -31,11 +31,18 @@ android {
             minifyEnabled false
         }
     }
+    buildFeatures {
+        buildConfig true
+    }
     externalNativeBuild {
         cmake {
             path '../native/CMakeLists.txt'
         }
     }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 project.afterEvaluate {
@@ -53,7 +60,7 @@ project.afterEvaluate {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
                 artifactId 'bindings-mozjpeg'
-                version '1.1.1'
+                version '1.1.2'
             }
         }
     }
