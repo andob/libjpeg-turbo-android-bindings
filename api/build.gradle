@@ -3,10 +3,10 @@ apply plugin: 'maven-publish'
 
 android {
     namespace 'ro.andob.jpegturbo'
-    compileSdk 35
+    compileSdk = 35
     defaultConfig {
-        minSdk 26
-        targetSdk 35
+        minSdk = 26
+        targetSdk = 35
     }
     compileOptions {
         targetCompatibility JavaVersion.VERSION_17
@@ -46,7 +46,7 @@ project.afterEvaluate {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
                 artifactId 'bindings-api'
-                version '1.1.2'
+                version '1.1.3'
             }
         }
     }
