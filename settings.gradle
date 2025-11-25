@@ -2,5 +2,5 @@ include ':sample'
 include ':api'
 include ':bindings-jpegturbo'
 include ':bindings-mozjpeg'
-rootProject.name = "jpeg-turbo-android-bindings"
 include ':bindings-jpegli'
+rootProject.name = "jpeg-turbo-android-bindings"
