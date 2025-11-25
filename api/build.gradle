@@ -29,6 +29,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compileOnly project(':bindings-jpegturbo')
     compileOnly project(':bindings-mozjpeg')
+    compileOnly project(':bindings-jpegli')
 }
 
 project.afterEvaluate {
@@ -46,7 +47,7 @@ project.afterEvaluate {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
                 artifactId 'bindings-api'
-                version '1.1.4'
+                version '1.1.5'
             }
         }
     }

@@ -2,19 +2,19 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 android {
-    namespace 'ro.andob.jpegturbo.jpegturbo_native'
+    namespace 'ro.andob.jpegturbo.jpegli_native'
     compileSdk = 35
     defaultConfig {
         minSdk = 26
         targetSdk = 35
         ndkVersion '29.0.14033849'
         defaultConfig {
-            buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"jpegturbo\""
+            buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"jpegli\""
             externalNativeBuild {
                 cmake {
-                    arguments "-DLIBRARY_NAME=jpegturbo",
+                    arguments "-DLIBRARY_NAME=jpegli",
                               "-DLIBJPEG_TURBO_DIR_NAME=libjpeg-turbo-2.1.4",
-                              "-DJAVA_CLASS_NAME=ro_andob_jpegturbo_JPEGTurboNative",
+                              "-DJAVA_CLASS_NAME=ro_andob_jpegturbo_JpegliNative",
                               "-DANDROID_ARM_NEON=ON"
                 }
             }
@@ -44,6 +44,7 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'com.github.awxkee:jpegli-coder:1.0.2'
 }
 
 project.afterEvaluate {
@@ -60,7 +61,7 @@ project.afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
-                artifactId 'bindings-jpegturbo'
+                artifactId 'bindings-jpegli'
                 version '1.1.5'
             }
         }

@@ -5,8 +5,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-typedef unsigned char byte;
-
 struct transform_args
 {
     const char* input_file_path;
@@ -257,11 +255,11 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     const char* output_file_path = (*env)->GetStringUTFChars(env, output_file_path_from_java, 0);
 
     //JPEG specification - see https://stackoverflow.com/a/48814876
-    byte jpeg_marker[] = { 0xFF, 0xD8 };
-    byte exif_marker[] = { 0xFF, 0xE1 };
+    uint8_t jpeg_marker[] = { 0xFF, 0xD8 };
+    uint8_t exif_marker[] = { 0xFF, 0xE1 };
 
     int exif_size = 0, image_size = 0;
-    byte *exif_data = NULL, *image_data = NULL;
+    uint8_t *exif_data = NULL, *image_data = NULL;
 
     #define ReleaseMemory if (image_data) free(image_data); if (exif_data) free(exif_data);\
         (*env)->ReleaseStringUTFChars(env, input_exif_file_path_from_java, input_exif_file_path); \
@@ -270,19 +268,19 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
 
     FILE* input_exif_file = fopen(input_exif_file_path, "rb");
     if (input_exif_file == NULL) { ReleaseMemory return EXIT_FAILURE; }
-    byte two_bytes[2];
-    fread(two_bytes, sizeof(byte), 2, input_exif_file);
+    uint8_t two_bytes[2];
+    fread(two_bytes, sizeof(uint8_t), 2, input_exif_file);
     if (two_bytes[0] == jpeg_marker[0] && two_bytes[1] == jpeg_marker[1])
     {
-        fread(two_bytes, sizeof(byte), 2, input_exif_file);
+        fread(two_bytes, sizeof(uint8_t), 2, input_exif_file);
         if (two_bytes[0] == exif_marker[0] && two_bytes[1] == exif_marker[1])
         {
-            fread(two_bytes, sizeof(byte), 2, input_exif_file);
+            fread(two_bytes, sizeof(uint8_t), 2, input_exif_file);
             exif_size = ((two_bytes[0] << 8) | two_bytes[1]) - 2;
             if (exif_size > 0)
             {
-                exif_data = malloc(sizeof(byte) * exif_size);
-                fread(exif_data, sizeof(byte), exif_size, input_exif_file);
+                exif_data = malloc(sizeof(uint8_t) * exif_size);
+                fread(exif_data, sizeof(uint8_t), exif_size, input_exif_file);
             }
         }
     }
@@ -293,19 +291,19 @@ CREATE_JAVA_METHOD(mergeExifAndJpeg)(
     fseek(input_image_file, 0L, SEEK_END);
     image_size = ftell(input_image_file);
     rewind(input_image_file);
-    image_data = malloc(sizeof(byte)*image_size);
-    fread(image_data, sizeof(byte), image_size, input_image_file);
+    image_data = malloc(sizeof(uint8_t)*image_size);
+    fread(image_data, sizeof(uint8_t), image_size, input_image_file);
     fclose(input_image_file);
 
     if (exif_data != NULL && exif_size > 0 && image_data != NULL && image_size > 2)
     {
         FILE* output_file = fopen(output_file_path, "wb");
-        byte encoded_exif_size[] = { ((exif_size+2)>>8)&0xFF, (exif_size+2)&0xFF };
-        fwrite(jpeg_marker, sizeof(byte), 2, output_file);
-        fwrite(exif_marker, sizeof(byte), 2, output_file);
-        fwrite(encoded_exif_size, sizeof(byte), 2, output_file);
-        fwrite(exif_data, sizeof(byte), exif_size, output_file);
-        fwrite(image_data+2, sizeof(byte), image_size-2, output_file);
+        uint8_t encoded_exif_size[] = { ((exif_size+2)>>8)&0xFF, (exif_size+2)&0xFF };
+        fwrite(jpeg_marker, sizeof(uint8_t), 2, output_file);
+        fwrite(exif_marker, sizeof(uint8_t), 2, output_file);
+        fwrite(encoded_exif_size, sizeof(uint8_t), 2, output_file);
+        fwrite(exif_data, sizeof(uint8_t), exif_size, output_file);
+        fwrite(image_data+2, sizeof(uint8_t), image_size-2, output_file);
         fclose(output_file);
     }
     else

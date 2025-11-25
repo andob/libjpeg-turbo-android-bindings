@@ -3,6 +3,7 @@
 api/build/
 bindings-jpegturbo/.cxx/
 bindings-mozjpeg/.cxx/
+bindings-jpegli/.cxx/
 bindings-jpegturbo/build/
 bindings-mozjpeg/build/
 sample/build/

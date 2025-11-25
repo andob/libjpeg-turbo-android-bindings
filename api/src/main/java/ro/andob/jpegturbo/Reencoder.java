@@ -38,7 +38,8 @@ final class Reencoder
 
             if (resultCode != EXIT_SUCCESS || args.isVerbose())
             {
-                StringBuilder errorMessageBuilder = new StringBuilder("JPEGTurbo!\n").append(args);
+                StringBuilder errorMessageBuilder = new StringBuilder(nativeImpl.toString());
+                errorMessageBuilder.append('\n').append(args);
 
                 errorMessageBuilder.append("\n\nResult code: ");
                 if (resultCode == EXIT_SUCCESS) errorMessageBuilder.append("Success");

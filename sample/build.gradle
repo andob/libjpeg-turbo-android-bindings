@@ -30,4 +30,5 @@ dependencies {
     implementation project(':api')
     implementation project(':bindings-jpegturbo')
     implementation project(':bindings-mozjpeg')
+    implementation project(':bindings-jpegli')
 }

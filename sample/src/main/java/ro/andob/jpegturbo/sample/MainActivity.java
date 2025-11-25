@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import ro.andob.jpegturbo.JPEGReencodeArgs;
 import ro.andob.jpegturbo.JPEGTurbo;
+import ro.andob.jpegturbo.Jpegli;
 import ro.andob.jpegturbo.Mozjpeg;
 
 public class MainActivity extends Activity
@@ -106,8 +107,7 @@ public class MainActivity extends Activity
                     JPEGTurbo.reencode(JPEGReencodeArgs.with(this)
                         .inputFile(inputFile)
                         .outputFile(outputFile)
-                        .optimize()
-                        .verbose()
+                        .optimize().verbose()
                         .errorLogger(Throwable::printStackTrace)
                         .warningLogger(Throwable::printStackTrace)));
 
@@ -115,15 +115,23 @@ public class MainActivity extends Activity
                     Mozjpeg.reencode(JPEGReencodeArgs.with(this)
                         .inputFile(inputFile)
                         .outputFile(outputFile)
-                        .optimize()
-                        .verbose()
+                        .optimize().verbose()
+                        .errorLogger(Throwable::printStackTrace)
+                        .warningLogger(Throwable::printStackTrace)));
+
+                BenchmarkResults jpegli = benchmark(() ->
+                    Jpegli.reencode(JPEGReencodeArgs.with(this)
+                        .inputFile(inputFile)
+                        .outputFile(outputFile)
+                        .optimize().verbose()
                         .errorLogger(Throwable::printStackTrace)
                         .warningLogger(Throwable::printStackTrace)));
 
                 StringBuilder benchmarkResults = new StringBuilder();
                 benchmarkResults.append("Reference:\n").append(reference).append("\n\n\n");
-                benchmarkResults.append(" Turbojpeg:\n").append(turbojpeg).append("\n\n\n");
-                benchmarkResults.append(" Mozjpeg:\n").append(mozjpeg).append("\n\n\n");
+                benchmarkResults.append("Turbojpeg:\n").append(turbojpeg).append("\n\n\n");
+                benchmarkResults.append("Mozjpeg:\n").append(mozjpeg).append("\n\n\n");
+                benchmarkResults.append("Jpegli:\n").append(jpegli).append("\n\n\n");
                 benchmarkResults.append(BuildConfig.DEBUG?" (DEBUG MODE! Release builds are much faster!)":"");
 
                 runOnUiThread(() -> textView.setText(benchmarkResults));
