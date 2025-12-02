@@ -1,1 +1,1 @@
-./gradlew :api:clean :bindings-jpegturbo:clean :bindings-mozjpeg:clean :api:publishToMavenLocal :bindings-jpegturbo:publishToMavenLocal :bindings-mozjpeg:publishToMavenLocal
+./gradlew :api:clean :bindings-jpegturbo:clean :bindings-mozjpeg:clean :api:publishToMavenLocal :bindings-jpegturbo:publishToMavenLocal :bindings-mozjpeg:publishToMavenLocal :bindings-jpegli:publishToMavenLocal

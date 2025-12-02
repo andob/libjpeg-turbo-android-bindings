@@ -1,5 +1,5 @@
 /* libjpeg-turbo build number */
-#define BUILD  "20251125"
+#define BUILD  "20251202"
 
 /* Compiler's inline keyword */
 #undef inline
@@ -11,7 +11,7 @@
 #define THREAD_LOCAL  __thread
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME  "jpegturbo"
+#define PACKAGE_NAME  "jpegli"
 
 /* Version number of package */
 #define VERSION  "2.1.4"

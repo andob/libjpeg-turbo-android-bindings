@@ -3,10 +3,10 @@ apply plugin: 'maven-publish'
 
 android {
     namespace 'ro.andob.jpegturbo.jpegli_native'
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         ndkVersion '29.0.14033849'
         defaultConfig {
             buildConfigField "String", "NATIVE_LIBRARY_NAME", "\"jpegli\""
@@ -62,7 +62,7 @@ project.afterEvaluate {
                 from components.release
                 groupId 'ro.andob.jpegturbo'
                 artifactId 'bindings-jpegli'
-                version '1.1.5'
+                version '1.1.6'
             }
         }
     }

@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     namespace 'ro.andob.jpegturbo.sample'
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId 'ro.andob.jpegturbo.sample'
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
     }
     buildTypes {
         release {
@@ -24,7 +24,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'androidx.core:core-ktx:1.17.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'com.github.bumptech.glide:glide:5.0.5'
     implementation project(':api')
